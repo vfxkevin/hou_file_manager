@@ -1,0 +1,11 @@
+{
+    "hpath": "$HOU_FILE_MANAGER",
+    "load_package_once": true,
+    "enable": "houdini_version >= '19.0' and houdini_version < '21.0'",
+    "version": "20.5",
+    "env": [
+        {
+            "HOU_FILE_MANAGER": "$HOUDINI_PACKAGE_PATH/hou_file_manager"
+        }
+    ]
+}
