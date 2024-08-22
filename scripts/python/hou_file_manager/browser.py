@@ -47,91 +47,15 @@ class FilePathManagerBrowser(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        # Models for the two views
         self._node_tree_model = None
         self._parm_tree_model = None
 
         # --------------- top section ---------------
-        # create widgets
-
-        self.ui_refresh_button = QPushButton('Refresh')
-        self.ui_refresh_button.clicked.connect(self.on_refresh_tree_widget)
-
-        # choose root node section
-        root_path_layout = QHBoxLayout()
-        root_path_label = QLabel('Search In Path:')
-        self.ui_root_path_text = hou.qt.SearchLineEdit()
-        self.ui_root_path_text.editingFinished.connect(self.on_refresh_tree_widget)
-        choose_root_button = hou.qt.NodeChooserButton()
-        choose_root_button.nodeSelected.connect(self.on_root_node_selected)
-        root_path_layout.addWidget(root_path_label)
-        root_path_layout.addWidget(self.ui_root_path_text)
-        root_path_layout.addWidget(choose_root_button)
-
-        # top section layout
-        top_section_layout = QVBoxLayout()
-        top_section_layout.addWidget(self.ui_refresh_button)
-        top_section_layout.addLayout(root_path_layout)
+        top_section_layout = self.build_top_section()
 
         # --------------- centre section ---------------
-
-        # ==== left side panel ====
-        left_side_widget = QWidget()
-        left_side_layout = QHBoxLayout()
-        self.ui_node_tree_view = QTreeView()
-        self.ui_node_tree_view.setAlternatingRowColors(True)
-        self.ui_node_tree_view.setSelectionMode(
-            QAbstractItemView.ExtendedSelection)
-        self.ui_node_tree_view.setToolTip(
-            'Node View:\n'
-            '* Select nodes to show parameters details:\n'
-            '   - This will NOT affect node selection in Houdini!\n'
-            '   - Only highlighted nodes can be selected!\n'
-            '   - Single-click the highlighted item to select single item.\n'
-            '   - Click and drag to select multiple items.\n'
-            '   - Use Ctrl + click to toggle selection of the items.\n'
-            '   - Use Shift + click the start and end items for a range.\n'
-            '* Double-click on an item to select it, set it to current \n'
-            '  and show it in the Network View.\n'
-            '   - This WILL affect node selection in Houdini!')
-        self.ui_node_tree_view.doubleClicked.connect(
-            self.on_node_tree_view_double_clicked)
-        left_side_layout.addWidget(self.ui_node_tree_view)
-        left_side_widget.setLayout(left_side_layout)
-
-        # ==== Mid panel ====
-        mid_widget = QWidget()
-        mid_layout = QHBoxLayout()
-        self.ui_parm_tree_view = QTreeView()
-        self.ui_parm_tree_view.setAlternatingRowColors(True)
-        self.ui_parm_tree_view.setSelectionMode(
-            QAbstractItemView.ExtendedSelection)
-        self.ui_parm_tree_view.setToolTip(
-            'Parameter View:\n'
-            '* To select parameter(s) for "Batch Processing" (right panel):\n'
-            '   - Single-click the highlighted item to select single item.\n'
-            '   - Click and drag to select multiple items.\n'
-            '   - Use Ctrl + click to toggle selection of the items.\n'
-            '   - Use Shift + click the start and end items for a range.\n'
-            '* Use the file chooser buttons in the "Tools" column \n'
-            '  to browse and choose files.\n'
-            '* Double-click on an item of the "Raw Value" column to \n'
-            '  edit them directly in place.')
-        mid_layout.addWidget(self.ui_parm_tree_view)
-        mid_widget.setLayout(mid_layout)
-
-        # ==== right side panel ====
-        right_side_widget = self.build_right_side_widget()
-
-        # ==== centre section layout ====
-        centre_section_layout = QHBoxLayout()
-        splitter = QSplitter()
-        splitter.addWidget(left_side_widget)
-        splitter.addWidget(mid_widget)
-        splitter.addWidget(right_side_widget)
-        splitter.setStretchFactor(0, 2)
-        splitter.setStretchFactor(1, 4)
-        splitter.setStretchFactor(2, 3)
-        centre_section_layout.addWidget(splitter)
+        centre_section_layout = self.build_center_section()
 
         # --------------- root layout ---------------
         root_layout = QVBoxLayout()
@@ -203,7 +127,7 @@ class FilePathManagerBrowser(QFrame):
             # multiple buttons
             buttons_widget = QWidget()
             buttons_layout = QHBoxLayout()
-            buttons_layout.setContentsMargins(0,0,0,0)
+            buttons_layout.setContentsMargins(0, 0, 0, 0)
             file_chooser_button = hou.qt.FileChooserButton()
             preview_button = QPushButton('P')
             buttons_layout.addWidget(file_chooser_button)
@@ -215,16 +139,98 @@ class FilePathManagerBrowser(QFrame):
                 self._parm_tree_model.index(row,1), buttons_widget)
 
             # add callbacks
-
             file_cb = partial(self.update_parm_model, row)
             file_chooser_button.fileSelected.connect(file_cb)
 
             preview_cb = partial(self.on_preview_file, row)
             preview_button.clicked.connect(preview_cb)
 
-    def build_right_side_widget(self):
+    def build_top_section(self):
+
+        # create widgets
+        self.ui_refresh_button = QPushButton('Refresh')
+        self.ui_refresh_button.clicked.connect(self.on_refresh_tree_widget)
+
+        # choose root node section
+        root_path_layout = QHBoxLayout()
+        root_path_label = QLabel('Search In Path:')
+        self.ui_root_path_text = hou.qt.SearchLineEdit()
+        self.ui_root_path_text.editingFinished.connect(self.on_refresh_tree_widget)
+        choose_root_button = hou.qt.NodeChooserButton()
+        choose_root_button.nodeSelected.connect(self.on_root_node_selected)
+        root_path_layout.addWidget(root_path_label)
+        root_path_layout.addWidget(self.ui_root_path_text)
+        root_path_layout.addWidget(choose_root_button)
+
+        # top section layout
+        top_section_layout = QVBoxLayout()
+        top_section_layout.addWidget(self.ui_refresh_button)
+        top_section_layout.addLayout(root_path_layout)
+
+        return top_section_layout
+
+    def build_node_view_widget(self):
+        # Top widget and layout
+        node_view_top_widget = QWidget()
+        node_view_layout = QHBoxLayout()
+
+        # The tree view
+        self.ui_node_tree_view = QTreeView()
+        self.ui_node_tree_view.setAlternatingRowColors(True)
+        self.ui_node_tree_view.setSelectionMode(
+            QAbstractItemView.ExtendedSelection)
+        self.ui_node_tree_view.setToolTip(
+            'Node View:\n'
+            '* Select nodes to show parameters details:\n'
+            '   - This will NOT affect node selection in Houdini!\n'
+            '   - Only highlighted nodes can be selected!\n'
+            '   - Single-click the highlighted item to select single item.\n'
+            '   - Click and drag to select multiple items.\n'
+            '   - Use Ctrl + click to toggle selection of the items.\n'
+            '   - Use Shift + click the start and end items for a range.\n'
+            '* Double-click on an item to select it, set it to current \n'
+            '  and show it in the Network View.\n'
+            '   - This WILL affect node selection in Houdini!')
+        self.ui_node_tree_view.doubleClicked.connect(
+            self.on_node_tree_view_double_clicked)
+
+        # Add tree view
+        node_view_layout.addWidget(self.ui_node_tree_view)
+        node_view_top_widget.setLayout(node_view_layout)
+
+        return node_view_top_widget
+
+    def build_parm_view_widget(self):
+        # Top widget and layout
+        parm_view_top_widget = QWidget()
+        parm_view_layout = QHBoxLayout()
+
+        # The tree view
+        self.ui_parm_tree_view = QTreeView()
+        self.ui_parm_tree_view.setAlternatingRowColors(True)
+        self.ui_parm_tree_view.setSelectionMode(
+            QAbstractItemView.ExtendedSelection)
+        self.ui_parm_tree_view.setToolTip(
+            'Parameter View:\n'
+            '* To select parameter(s) for "Batch Processing" (right panel):\n'
+            '   - Single-click the highlighted item to select single item.\n'
+            '   - Click and drag to select multiple items.\n'
+            '   - Use Ctrl + click to toggle selection of the items.\n'
+            '   - Use Shift + click the start and end items for a range.\n'
+            '* Use the file chooser buttons in the "Tools" column \n'
+            '  to browse and choose files.\n'
+            '* Double-click on an item of the "Raw Value" column to \n'
+            '  edit them directly in place.')
+
+        # Add to layout
+        parm_view_layout.addWidget(self.ui_parm_tree_view)
+        parm_view_top_widget.setLayout(parm_view_layout)
+
+        return parm_view_top_widget
+
+    def build_tools_n_log_widget(self):
         # create tab widget
-        right_side_tab_widget = QTabWidget()
+        tools_n_log_top_widget = QTabWidget()
 
         # create the scroll area
         tools_scroll_area = QScrollArea()
@@ -283,10 +289,32 @@ class FilePathManagerBrowser(QFrame):
         log_scroll_area = QScrollArea()
 
         # add widgets to tab widget
-        right_side_tab_widget.addTab(tools_scroll_area, "Tools")
-        right_side_tab_widget.addTab(log_scroll_area, 'Logs')
+        tools_n_log_top_widget.addTab(tools_scroll_area, "Tools")
+        tools_n_log_top_widget.addTab(log_scroll_area, 'Logs')
 
-        return right_side_tab_widget
+        return tools_n_log_top_widget
+
+    def build_center_section(self):
+
+        # ==== centre section top widgets ====
+        node_view_top_widget = self.build_node_view_widget()
+
+        parm_view_top_widget = self.build_parm_view_widget()
+
+        tools_n_log_top_widget = self.build_tools_n_log_widget()
+
+        # ==== centre section layout ====
+        centre_section_layout = QHBoxLayout()
+        splitter = QSplitter()
+        splitter.addWidget(node_view_top_widget)
+        splitter.addWidget(parm_view_top_widget)
+        splitter.addWidget(tools_n_log_top_widget)
+        splitter.setStretchFactor(0, 2)
+        splitter.setStretchFactor(1, 4)
+        splitter.setStretchFactor(2, 3)
+        centre_section_layout.addWidget(splitter)
+
+        return centre_section_layout
 
     def on_root_node_selected(self, op_node):
         self.ui_root_path_text.setText(op_node.path())
@@ -309,6 +337,7 @@ class FilePathManagerBrowser(QFrame):
 
         index = self._parm_tree_model.index(row_id, 2)
         self._parm_tree_model.setData(index, path, Qt.EditRole)
+
     def on_parm_tree_data_changed(self, top_left: QModelIndex,
                                   bottom_right: QModelIndex, roles):
         parm = (self._parm_tree_model.get_item(top_left)
@@ -329,7 +358,6 @@ class FilePathManagerBrowser(QFrame):
 
         elif self.ui_all_parms_option.isChecked():
             pass
-
 
         # Dest dir
         dest_dir = self.ui_file_dest_dir.text()
