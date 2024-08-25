@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import hou
 
 PATH_DELIMITER = '/'
 
@@ -48,3 +49,9 @@ FILE_ACTIONS = [FILE_ACTION_COPY, FILE_ACTION_MOVE]
 # Colors
 BG_RED = (100, 0, 0)
 BG_GREEN = (0, 100, 0)
+
+# icons
+ICON_SIZE = hou.ui.scaledSize(16)
+ADD_ICON = hou.qt.createIcon("BUTTONS_list_add", ICON_SIZE, ICON_SIZE)
+
+

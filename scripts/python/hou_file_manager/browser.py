@@ -29,18 +29,50 @@ from PySide2.QtWidgets import QWidget, QFrame, QGroupBox
 from PySide2.QtWidgets import (QAbstractItemView, QListView, QTreeView,
                                QHeaderView)
 from PySide2.QtWidgets import (QPushButton, QLineEdit, QLabel,
-                               QRadioButton)
+                               QRadioButton, QCheckBox)
 from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QScrollArea
 from PySide2.QtWidgets import QTabWidget, QSplitter, QButtonGroup
+from PySide2.QtWidgets import QSizePolicy
 from PySide2.QtCore import QModelIndex
 from PySide2.QtCore import Qt
 
 import hou
+import nodesearch
 import resourceui
 
 from . import constants as const
-from .matchers import FileParm
+from . import matchers
 from .hou_tree_model import HouParmTreeModel, HouNodeTreeModel
+
+
+class NodeParmFilterList(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self._layout = QVBoxLayout()
+        self.setLayout(self._layout)
+
+        self._filter_rows = []
+
+    def add_filter_row(self, filter_type):
+        pass
+
+    def remove_filter_row(self, filter_row_obj):
+        pass
+
+    def matches_all(self):
+        return None
+
+    def matchers(self):
+        matchers = []
+        for filter in self._filter_rows:
+            matcher = filter.matcher()
+            if not matcher:
+                raise Exception('Filter ({}) does not have a matcher.'
+                                .format(filter))
+            matchers.append(matcher)
+
+        return matchers
 
 
 class FilePathManagerBrowser(QFrame):
@@ -59,18 +91,13 @@ class FilePathManagerBrowser(QFrame):
 
         # --------------- root layout ---------------
         root_layout = QVBoxLayout()
-        root_layout.addLayout(top_section_layout)
-        root_layout.addLayout(centre_section_layout)
+        root_layout.addLayout(top_section_layout, stretch=0)
+        root_layout.addLayout(centre_section_layout, stretch=1)
 
         # set the root layout
         self.setLayout(root_layout)
 
-    def set_up_node_tree_model(self, root_node):
-
-        m = FileParm(parm_name='*',
-                     file_type='image')
-        path_list = [n.path() for n in
-                     m.nodes(root_node, recursive=True)]
+    def set_up_node_tree_model(self, path_list):
 
         self._node_tree_model = HouNodeTreeModel(path_list)
         self.ui_node_tree_view.setModel(self._node_tree_model)
@@ -81,36 +108,15 @@ class FilePathManagerBrowser(QFrame):
         self.ui_node_tree_view.expandAll()
         self.ui_node_tree_view.resizeColumnToContents(0)
 
-    def set_up_parm_tree_model(self):
-        # Get the selected nodes from node tree view
-        # Use selectedRows(0) because we just need one id per row.
-        id_list = self.ui_node_tree_view.selectionModel().selectedRows(0)
-
-        # Find all the filtered parms
-        parm_list = []
-        for index in id_list:
-            node = (self._node_tree_model.get_item(index)
-                    .get_raw_data().get_orig_data())
-            for parm in node.globParms('*'):
-                if not parm.isVisible():
-                    continue
-
-                pt = parm.parmTemplate()
-
-                if not isinstance(pt, hou.StringParmTemplate):
-                    continue
-
-                if not pt.stringType() == hou.stringParmType.FileReference:
-                    continue
-
-                if pt.fileType().name().lower() == 'image':
-                    parm_list.append(parm.path())
+    def set_up_parm_tree_model(self, parm_list):
 
         # Update the parm tree view
         self._parm_tree_model = HouParmTreeModel(parm_list)
         self.ui_parm_tree_view.setModel(self._parm_tree_model)
         self._parm_tree_model.dataChanged.connect(
             self.on_parm_tree_data_changed)
+
+    def node_tree_view_config_post_model_setup(self):
 
         # Configure tree view
         self.ui_parm_tree_view.resizeColumnToContents(0)
@@ -149,23 +155,107 @@ class FilePathManagerBrowser(QFrame):
 
         # create widgets
         self.ui_refresh_button = QPushButton('Refresh')
-        self.ui_refresh_button.clicked.connect(self.on_refresh_tree_widget)
+        self.ui_refresh_button.clicked.connect(self.on_refresh)
 
         # choose root node section
         root_path_layout = QHBoxLayout()
         root_path_label = QLabel('Search In Path:')
         self.ui_root_path_text = hou.qt.SearchLineEdit()
-        self.ui_root_path_text.editingFinished.connect(self.on_refresh_tree_widget)
+        self.ui_root_path_text.editingFinished.connect(self.on_refresh)
         choose_root_button = hou.qt.NodeChooserButton()
         choose_root_button.nodeSelected.connect(self.on_root_node_selected)
         root_path_layout.addWidget(root_path_label)
         root_path_layout.addWidget(self.ui_root_path_text)
         root_path_layout.addWidget(choose_root_button)
 
+        # filter layout
+        filter_grp_box = QGroupBox('Filters')
+        filter_layout = QVBoxLayout()
+
+        # node filter layout
+        node_filter_layout = QHBoxLayout()
+        node_filter_layout.setSpacing(20)
+
+        # Node name filter
+        node_name_filter_layout = QHBoxLayout()
+        node_name_filter_layout.setSpacing(5)
+        node_name_label = QLabel('Node Name:')
+        self.ui_node_name_filter_text = QLineEdit('*')
+        self.ui_node_name_filter_text.editingFinished.connect(self.on_refresh)
+        node_name_filter_layout.addWidget(node_name_label)
+        node_name_filter_layout.addWidget(self.ui_node_name_filter_text)
+
+        # Node type filter
+        node_type_filter_layout = QHBoxLayout()
+        node_type_filter_layout.setSpacing(5)
+        node_type_label = QLabel('Node Type:')
+        self.ui_node_type_category_combo = hou.qt.ComboBox()
+
+        cate = list(hou.nodeTypeCategories().items())
+        for c in (hou.managerNodeTypeCategory(), hou.rootNodeTypeCategory()):
+            cate.remove((c.name(), c))
+        cate.insert(0, ("*", None))
+        cate.sort()
+        for c in cate:
+            self.ui_node_type_category_combo.addItem(c[0], c[1])
+        self.ui_node_type_category_combo.setMinimumWidth(80)
+        self.ui_node_type_category_combo.currentTextChanged.connect(
+            self.on_node_type_category_changed)
+
+        self.ui_node_type_combo = hou.qt.ComboBox()
+        self.ui_node_type_combo.setEditable(True)
+        self.ui_node_type_combo.addItem('*')
+        self.ui_node_type_combo.setMinimumWidth(200)
+        self.ui_node_type_combo.currentTextChanged.connect(self.on_refresh)
+        node_type_filter_layout.addWidget(node_type_label)
+        node_type_filter_layout.addWidget(self.ui_node_type_category_combo)
+        node_type_filter_layout.addWidget(self.ui_node_type_combo, stretch=1)
+
+        # add to node filter layout
+        node_filter_layout.addLayout(node_name_filter_layout, stretch=1)
+        node_filter_layout.addLayout(node_type_filter_layout, stretch=1)
+
+        # parm filter layout
+        parm_filter_layout = QHBoxLayout()
+        parm_filter_layout.setSpacing(20)
+
+        # Parm name filter
+        parm_name_filter_layout = QHBoxLayout()
+        parm_name_filter_layout.setSpacing(5)
+        parm_name_label = QLabel('Parm Name:')
+        self.ui_parm_name_filter_text = QLineEdit('*')
+        self.ui_parm_name_filter_text.editingFinished.connect(self.on_refresh)
+        parm_name_filter_layout.addWidget(parm_name_label)
+        parm_name_filter_layout.addWidget(self.ui_parm_name_filter_text)
+
+        # Parm File type filter
+        parm_file_type_filter_layout = QHBoxLayout()
+        parm_file_type_filter_layout.setSpacing(5)
+        file_type_label = QLabel('Parm File Type:')
+        parm_file_type_filter_layout.addWidget(file_type_label)
+        self.ui_file_type_combo = hou.qt.ComboBox()
+        self.ui_file_type_combo.addItem('Image')
+        self.ui_file_type_combo.addItem('Geometry')
+        self.ui_file_type_combo.currentTextChanged.connect(self.on_refresh)
+        parm_file_type_filter_layout.addWidget(self.ui_file_type_combo)
+        parm_file_type_filter_layout.addStretch()
+
+        # add to parm filter layout
+        parm_filter_layout.addLayout(parm_name_filter_layout, stretch=1)
+        parm_filter_layout.addLayout(parm_file_type_filter_layout, stretch=1)
+
+        # add to filter layout
+        filter_layout.addLayout(node_filter_layout)
+        filter_layout.addLayout(parm_filter_layout)
+
+        # set layout
+        filter_grp_box.setLayout(filter_layout)
+
         # top section layout
         top_section_layout = QVBoxLayout()
         top_section_layout.addWidget(self.ui_refresh_button)
         top_section_layout.addLayout(root_path_layout)
+        top_section_layout.addWidget(filter_grp_box)
 
         return top_section_layout
 
@@ -316,9 +406,51 @@ class FilePathManagerBrowser(QFrame):
 
         return centre_section_layout
 
+    def on_refresh(self):
+        """ The main callback for refreshing the UIs."""
+
+        # Get the root node
+        root_path = self.ui_root_path_text.text()
+        if not root_path:
+            return
+
+        root_node = hou.node(root_path)
+        if not root_node:
+            return
+
+        # Get the filters
+        filter_matchers = []
+        node_name_filter_txt = self.ui_node_name_filter_text.text()
+        if not node_name_filter_txt:
+            node_name_filter_txt = '*'
+        filter_matchers.append(nodesearch.Name(node_name_filter_txt))
+
+        node_type_filter_txt = self.ui_node_type_combo.lineEdit().text()
+        filter_matchers.append(nodesearch.NodeType(node_type_filter_txt))
+
+        parm_name_filter_txt = self.ui_parm_name_filter_text.text()
+        if not parm_name_filter_txt:
+            parm_name_filter_txt = '*'
+        parm_file_type_filter_txt = self.ui_file_type_combo.currentText()
+        filter_matchers.append(matchers.ParmNameAndFileType(
+            parm_name_filter_txt, parm_file_type_filter_txt))
+
+        final_matcher_grp = nodesearch.Group(filter_matchers, intersect=True)
+
+        nodes = list(final_matcher_grp.nodes(root_node, ignore_case=True,
+                                             recursive=True,
+                                             recurse_in_locked_nodes=False))
+
+        # Get node path list
+        path_list = [n.path() for n in nodes]
+
+        # Set up the two models.
+        self.set_up_node_tree_model(path_list)
+        self.set_up_parm_tree_model([])
+
     def on_root_node_selected(self, op_node):
         self.ui_root_path_text.setText(op_node.path())
-        self.on_refresh_tree_widget()
+        self.on_refresh()
 
     def on_node_tree_view_double_clicked(self, model_index: QModelIndex):
 
@@ -329,7 +461,34 @@ class FilePathManagerBrowser(QFrame):
         node.setCurrent(True, clear_all_selected=True)
 
     def on_node_tree_view_selection_changed(self, selected, deselected):
-        self.set_up_parm_tree_model()
+        # get parm name pattern
+        parm_name_pattern = self.ui_parm_name_filter_text.text()
+        if not parm_name_pattern:
+            parm_name_pattern = '*'
+
+        # get parm file type
+        parm_file_type = self.ui_file_type_combo.currentText().lower()
+
+        # Get the selected nodes from node tree view
+        # Use selectedRows(0) because we just need one id per row.
+        id_list = self.ui_node_tree_view.selectionModel().selectedRows(0)
+
+        # Find all the filtered parms
+        parm_list = []
+        for index in id_list:
+
+            node = (self._node_tree_model.get_item(index)
+                    .get_raw_data().get_orig_data())
+
+            for parm in node.globParms(parm_name_pattern, ignore_case=True):
+
+                # Re-use the function from matchers
+                if matchers.parm_is_file_type(parm, parm_file_type,
+                                              match_invisible=False):
+                    parm_list.append(parm.path())
+
+        self.set_up_parm_tree_model(parm_list)
+        self.node_tree_view_config_post_model_setup()
 
     def update_parm_model(self, row_id, path):
         if not path:
@@ -348,7 +507,7 @@ class FilePathManagerBrowser(QFrame):
         # Each item of the list is a tuple of
         # (id_of_column_0, id_of_column_2)
 
-        id_list = None
+        id_list = []
         if self.ui_selected_parms_option.isChecked():
             col_0_list = self.ui_parm_tree_view.selectionModel().selectedRows(0)
             col_2_list = self.ui_parm_tree_view.selectionModel().selectedRows(2)
@@ -357,7 +516,12 @@ class FilePathManagerBrowser(QFrame):
                 return
 
         elif self.ui_all_parms_option.isChecked():
-            pass
+            root_index = self.ui_parm_tree_view.rootIndex()
+            root_item = self._parm_tree_model.get_item(root_index)
+            row_num = len(root_item.children())
+            for row_id in range(row_num):
+                id_list.append((self._parm_tree_model.index(row_id, 0),
+                                self._parm_tree_model.index(row_id, 2)))
 
         # Dest dir
         dest_dir = self.ui_file_dest_dir.text()
@@ -431,11 +595,9 @@ class FilePathManagerBrowser(QFrame):
     def on_preview_file(self, row_id):
 
         index = self._parm_tree_model.index(row_id, 2)
-        print(row_id)
         parm = self._parm_tree_model.get_item(index).get_raw_data().get_orig_data()
         file_path = parm.eval()
         raw_value = parm.rawValue()
-        print(file_path)
         if not file_path:
             return
 
@@ -445,17 +607,20 @@ class FilePathManagerBrowser(QFrame):
                                   '(Raw value: {})'.format(file_path, raw_value))
             return
 
-        subprocess.Popen(['mplay', file_path])
+        subprocess.Popen(['mplay', '-minimal', file_path])
 
-    def on_refresh_tree_widget(self):
-        root_path = self.ui_root_path_text.text()
-        if not root_path:
+    def on_node_type_category_changed(self):
+        self.ui_node_type_combo.clear()
+        self.ui_node_type_combo.addItem('*')
+
+        cur_cate = self.ui_node_type_category_combo.itemData(
+            self.ui_node_type_category_combo.currentIndex())
+
+        if not cur_cate:
             return
 
-        root_node = hou.node(root_path)
-        if not root_node:
-            return
+        items = nodesearch.node_types(cur_cate)
+        self.ui_node_type_combo.addItems(items)
 
-        self.set_up_node_tree_model(root_node)
-        self.set_up_parm_tree_model()
+
 
