@@ -1,5 +1,5 @@
 # Houdini File Path Manager
-A GUI tool and central place for managing all Houdini file paths of node parameters.
+A GUI tool and central place for managing all Houdini file paths (textures, images, caches, geometries) of node parameters.
 
 ## Functionalities:
 * Search in a path for nodes with file parmaters (image or geometry).
