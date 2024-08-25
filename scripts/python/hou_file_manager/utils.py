@@ -21,18 +21,22 @@
 # SOFTWARE.
 
 import shutil
+import glob
 from . import constants as const
 
 
 def process_parm_files(parm, file_action, dest_dir):
-
     source_files = []
+
+    raw_value = parm.rawValue()
 
     # Houdini doesn't support time-dependent UDIM texture files.
     # We will check if the file path contains <UDIM> first.
-
-    if '<UDIM>' in parm.rawValue():
-        pass
+    if '<UDIM>' in raw_value:
+        eval_value = parm.eval()
+        print(eval_value)
+        pattern = eval_value.replace('<UDIM>', '[1-9][0-9][0-9][0-9]')
+        source_files = glob.glob(pattern)
 
     elif parm.isTimeDependent():
         pass
@@ -41,9 +45,11 @@ def process_parm_files(parm, file_action, dest_dir):
         # Then it is a single file. Eval it which will expand the path.
         source_files.append(parm.eval())
 
+    print(source_files)
+
     # if nothing to process then return
     if not source_files:
-        return
+        return False
 
     for s_file in source_files:
         if file_action == const.FILE_ACTION_COPY:
@@ -63,3 +69,7 @@ def process_parm_files(parm, file_action, dest_dir):
         else:
             print('The file action is not supported: \n{}'
                   .format(file_action))
+
+    return True
+
+

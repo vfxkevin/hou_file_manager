@@ -364,7 +364,7 @@ class FilePathManagerBrowser(QFrame):
         run_it = QPushButton('Run')
         run_it.clicked.connect(self.on_action_run_it)
         note_label = QLabel(
-            'NOTE: Currently sequence files or UDIM files not supported.')
+            'NOTE: Currently sequence files not supported.')
         parm_layout_grp_box_mlt.addWidget(self.ui_copy_or_move_combo)
         parm_layout_grp_box_mlt.addWidget(self.ui_selected_parms_option)
         parm_layout_grp_box_mlt.addWidget(self.ui_all_parms_option)
@@ -560,22 +560,21 @@ class FilePathManagerBrowser(QFrame):
             parm = (self._parm_tree_model.get_item(id_pair[0])
                     .get_raw_data().get_orig_data())
 
+            print(parm)
+
             # process parameter files
-            utils.process_parm_files(parm, file_action, expanded_dest_dir)
+            success = utils.process_parm_files(parm, file_action,
+                                               expanded_dest_dir)
 
-            # New file path (it is not expanded), so MUST use the non-expanded
-            # dest_dir !
-            basename = os.path.basename(parm.rawValue())
-            new_file_path = os.path.join(dest_dir, basename)
+            if success:
+                # New file path (it is not expanded),
+                # so MUST use the non-expanded dest_dir !
+                basename = os.path.basename(parm.rawValue())
+                new_file_path = os.path.join(dest_dir, basename)
 
-            # Check if new file exists before updating the parameter
-            if not os.path.isfile(hou.text.expandString(new_file_path)):
-                print('The new file does not exist: \n{}'.format(new_file_path))
-                continue
-
-            # Then set model data, the views will update automatically.
-            self._parm_tree_model.setData(id_pair[1], new_file_path,
-                                          Qt.EditRole)
+                # Then set model data, the views will update automatically.
+                self._parm_tree_model.setData(id_pair[1], new_file_path,
+                                              Qt.EditRole)
 
     def on_preview_file(self, row_id):
 
