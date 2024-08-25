@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 import os
-import shutil
 import subprocess
 from functools import partial
 
@@ -42,6 +41,7 @@ import resourceui
 
 from . import constants as const
 from . import matchers
+from . import utils
 from .hou_tree_model import HouParmTreeModel, HouNodeTreeModel
 
 
@@ -560,36 +560,12 @@ class FilePathManagerBrowser(QFrame):
             parm = (self._parm_tree_model.get_item(id_pair[0])
                     .get_raw_data().get_orig_data())
 
-            # Get source file first
-            s_file = parm.eval()
-
-            # Check the existence of the source file.
-            if not s_file or not os.path.isfile(s_file):
-                print('The source file does not exist:\n{}'.format(s_file))
-                continue
-
-            # Copy or move the file first.
-            if file_action == const.FILE_ACTION_COPY:
-                print('Copying source file:\n'
-                      '    {}\n'
-                      '  to destination dir:\n'
-                      '    {}'
-                      .format(s_file, expanded_dest_dir))
-                shutil.copy(s_file, expanded_dest_dir)
-            elif file_action == const.FILE_ACTION_MOVE:
-                print('Moving source file:\n'
-                      '    {}\n'
-                      '  to destination dir:\n'
-                      '    {}'
-                      .format(s_file, expanded_dest_dir))
-                shutil.move(s_file, expanded_dest_dir)
-            else:
-                print('The file action is not supported: \n{}'
-                      .format(file_action))
+            # process parameter files
+            utils.process_parm_files(parm, file_action, expanded_dest_dir)
 
             # New file path (it is not expanded), so MUST use the non-expanded
             # dest_dir !
-            basename = os.path.basename(s_file)
+            basename = os.path.basename(parm.rawValue())
             new_file_path = os.path.join(dest_dir, basename)
 
             # Check if new file exists before updating the parameter

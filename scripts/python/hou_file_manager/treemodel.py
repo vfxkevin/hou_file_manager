@@ -249,14 +249,9 @@ class BaseTreeModel(QAbstractItemModel):
             return False
 
         item = self.get_item(index)
-        print(item)
-        print('---')
-        print(index.column())
         result = item.set_data(index.column(), value)
-        print(result)
 
         if result:
-            print('emit')
             self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
 
         return result

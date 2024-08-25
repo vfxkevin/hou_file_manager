@@ -26,6 +26,7 @@ from nodesearch.matchers import Matcher
 FILE_TYPE_DICT = {'image': hou.fileType.Image,
                   'geometry': hou.fileType.Geometry}
 
+
 def parm_is_file_type(parm, file_type, match_invisible=False):
         # No need to match when the parm is invisible and we don't want to
         # match invisible parms.
