@@ -135,6 +135,15 @@ class FilePathManagerBrowser(QFrame):
             buttons_layout = QHBoxLayout()
             buttons_layout.setContentsMargins(0, 0, 0, 0)
             file_chooser_button = hou.qt.FileChooserButton()
+            # get orig data
+            index = self._parm_tree_model.index(row, 0)
+            parm = (self._parm_tree_model.get_item(index)
+                    .get_raw_data().get_orig_data())
+            if matchers.parm_is_file_type(parm, 'image'):
+                file_chooser_button.setFileChooserFilter(hou.fileType.Image)
+                file_chooser_button.setFileChooserIsImageChooser(True)
+            elif matchers.parm_is_file_type(parm, 'geometry'):
+                file_chooser_button.setFileChooserFilter(hou.fileType.Geometry)
             preview_button = QPushButton('P')
             buttons_layout.addWidget(file_chooser_button)
             buttons_layout.addWidget(preview_button)

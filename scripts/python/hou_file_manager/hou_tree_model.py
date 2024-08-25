@@ -140,7 +140,7 @@ class HouNodeTreeModel(BaseTreeModel):
         return flags
 
     def set_up_model_data(self, data: list):
-        """ Data is a list of strings which are paths of Hou Nodes."""
+        """ Data is a string list of paths of Hou Nodes."""
 
         # Must sort the path list
         data.sort()
@@ -183,7 +183,7 @@ class HouParmTreeModel(BaseTreeModel):
         return flags
 
     def set_up_model_data(self, data: list):
-        """Data is a list of Hou Nodes."""
+        """Data is a string list of parm paths."""
 
         for parm_path in data:
             parm = hou.parm(parm_path)
