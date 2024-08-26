@@ -66,13 +66,27 @@ def process_parm_files(parm, file_action, dest_dir):
         # Then it is a single file. Eval it which will expand the path.
         source_files.append(parm.eval())
 
-    print(source_files)
-
     # if nothing to process then return
     if not source_files:
+        print('Nothing to process. Exiting.')
         return False
 
     for s_file in source_files:
+        if not os.path.isfile(s_file):
+            print('The source file does not exist: \n  {}'.format(s_file))
+            continue
+
+        # Check if target file already exists.
+        target_file = os.path.join(dest_dir, os.path.basename(s_file))
+        if os.path.isfile(target_file):
+            print('The file with same name as source file already '
+                  'exists in destination directory:\n'
+                  '  {}\n'
+                  'Exiting.'
+                  .format(target_file))
+            continue
+
+        # Then take file action.
         if file_action == const.FILE_ACTION_COPY:
             print('Copying source file:\n'
                   '    {}\n'
@@ -88,9 +102,12 @@ def process_parm_files(parm, file_action, dest_dir):
                   .format(s_file, dest_dir))
             shutil.move(s_file, dest_dir)
         else:
-            print('The file action is not supported: \n{}'
+            print('The file action is not supported: \n'
+                  '  {}\n'
+                  'Exiting.'
                   .format(file_action))
 
+    print('All files have been processed. Done.')
     return True
 
 
