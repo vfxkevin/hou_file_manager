@@ -3,6 +3,9 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 ![hou_file_manager_gui_01](https://github.com/user-attachments/assets/72080231-e58c-43fc-b32f-6c56a8f03f2f)
 
 ## Functionalities:
+* Refresh button for refreshing the Node View when Houdini scene is changed.
+  * Node View selection will be cleared once Refresh button is clicked.
+  * Parameter View will be cleared as well.
 * Search in a path for nodes with file parmaters (image or geometry).
   * Multiple search filters are supported:
     * Node Name: Houdini multi name patterns, like *, ^ and combinations.
