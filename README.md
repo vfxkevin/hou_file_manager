@@ -61,5 +61,5 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 * The Hou File Manager GUI can be found when creating a New Pane Tab.
   * ![hou_file_manager_pane_tab](https://github.com/user-attachments/assets/67130c8c-2be0-4c0d-91f1-efdc1c55eea4)
 
-# TODOs
+## TODOs
 * Logging UI.
