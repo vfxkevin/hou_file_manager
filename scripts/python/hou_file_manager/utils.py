@@ -20,8 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
 import shutil
 import glob
+import re
 from . import constants as const
 
 
@@ -29,17 +31,36 @@ def process_parm_files(parm, file_action, dest_dir):
     source_files = []
 
     raw_value = parm.rawValue()
+    eval_value = parm.eval()
 
     # Houdini doesn't support time-dependent UDIM texture files.
     # We will check if the file path contains <UDIM> first.
     if '<UDIM>' in raw_value:
-        eval_value = parm.eval()
-        print(eval_value)
         pattern = eval_value.replace('<UDIM>', '[1-9][0-9][0-9][0-9]')
         source_files = glob.glob(pattern)
 
     elif parm.isTimeDependent():
-        pass
+        basename = os.path.basename(raw_value)
+
+        # Backtick or () are not supported.
+        if '`' in basename or '(' in basename or ')' in basename:
+            return False
+
+        # Checking for $F4 or ${F4} like substrings.
+        pattern_re = re.compile('\$\{*F[0-9]*\}*')
+        result = pattern_re.search(basename)
+        if not result:
+            return False
+
+        # Get the full basename regex pattern
+        parts = pattern_re.split(basename)
+        full_basename_pattern_re = re.compile(
+            '^' + re.escape(parts[0]) + '[0-9]+' + re.escape(parts[1]) + '$'
+        )
+        dirname = os.path.dirname(eval_value)
+        source_files = [os.path.join(dirname, f)
+                        for f in os.listdir(dirname)
+                        if full_basename_pattern_re.match(f)]
 
     else:
         # Then it is a single file. Eval it which will expand the path.

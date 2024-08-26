@@ -364,7 +364,8 @@ class FilePathManagerBrowser(QFrame):
         run_it = QPushButton('Run')
         run_it.clicked.connect(self.on_action_run_it)
         note_label = QLabel(
-            'NOTE: Currently sequence files not supported.')
+            'NOTE: <UDIM> or $F (or ${F}) styles\n'
+            'of sequence file paths are supported.')
         parm_layout_grp_box_mlt.addWidget(self.ui_copy_or_move_combo)
         parm_layout_grp_box_mlt.addWidget(self.ui_selected_parms_option)
         parm_layout_grp_box_mlt.addWidget(self.ui_all_parms_option)
@@ -559,8 +560,6 @@ class FilePathManagerBrowser(QFrame):
             # get parm from id
             parm = (self._parm_tree_model.get_item(id_pair[0])
                     .get_raw_data().get_orig_data())
-
-            print(parm)
 
             # process parameter files
             success = utils.process_parm_files(parm, file_action,
