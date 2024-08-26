@@ -1,5 +1,6 @@
 # Houdini File Path Manager
 A GUI tool and central place for managing all Houdini file paths (textures, images, caches, geometries) of node parameters.
+![hou_file_manager_gui_01](https://github.com/user-attachments/assets/72080231-e58c-43fc-b32f-6c56a8f03f2f)
 
 ## Functionalities:
 * Search in a path for nodes with file parmaters (image or geometry).
@@ -29,7 +30,9 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
     * A 'Preview' button to preview the image in MPlay minimal mode.
   * The Raw Value of the file parameter in the Parameter View can be edited in place by double-clicking on it.
 * Tools UI
-  * Files in the file parameters can be copied or moved to a desination diretory, and the raw value file paths of the parmaeters will be updated to the new paths.
+  * Files in the Parameter View can be copied or moved to a desination diretory, and the raw value file paths of the parmaeters will be updated to the new paths.
+  * <UDIM> files are supported.
+  * $F or ${F} seqeuence files are supported. $F can have zero paddings, such as $F4 etc.
 
 ## Installation
 * Go to [Releases](https://github.com/vfxkevin/hou_file_manager/releases) and download the **source code zip file** from the latest release.
