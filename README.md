@@ -56,7 +56,4 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 * Re-launch Houdini.
 * The Hou File Manager GUI can be found when creating a New Pane Tab.
 
-## TODOs
-* Support sequence files (time dependent image/geometry sequences).
-* Support UDIM texture files.
-* Support Houdini events to automatically refresh the UI. 
+
