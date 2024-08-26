@@ -7,6 +7,7 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
   * Node View selection will be cleared once Refresh button is clicked.
   * Parameter View will be cleared as well.
 * Search in a path for nodes with file parmaters (image or geometry).
+  * Use the scene browser button to choose a node. Then the search will be conducted recursively under the node.
   * Multiple search filters are supported:
     * Node Name: Houdini multi name patterns, like *, ^ and combinations.
       * For example,
@@ -17,25 +18,33 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
         * `* ^*tmp` for any names NOT end with `tmp`.
         * `pri* ^*tmp` for any names start with `pri` but NOT end with `tmp`.
         * `*shader*` for any names with `shader` in it.
+        * `* ^*shader*` for any names without `shader` in it.
   * Node Type: Houdini single name patterns.
   * Parameter Name: Houdini multi name patterns, like *, ^ and combinations.
     * Refer to above Node Name multi name patterns.
-  * Parameter File Type: Image or Geometry.
+  * Parameter File Type: `Image` or `Geometry`.
 * Node View
   * It only shows the nodes based on the search results.
-  * The nodes with file parametes will be highlighted with red color.
-  * Double click on a node will set current selected node to it in the Network Editor.
+  * The nodes with file parametes that match the filters will be highlighted in red color.
+  * Users can select nodes in the Node View, and so their parameters that match the filters will be shown in the Parameter View.
+    * (NOTE: This won't affect Houdini current node selection in Network View, unless double click on a node in Node View.)
+    * Left Mouse Button (LMB) click to select single node.
+    * LMB click and drag to select multiple nodes.
+    * Ctrl + LMB to toggle selection of individual node.
+    * Shift + LMB click on the start and end node to select a range of nodes.
+  * Double-clicking on a node will set current selected node to it in the Network Editor.
+    * (Note: it will affect Houdini current node selection in the Network View.)
 * Parameter View
-  * The file parmaeters will be shown in the Parameter View for the selected nodes in the Node View
+  * The file parmaeters will be shown in the Parameter View for the selected nodes in the Node View.
     * Not the actual selected nodes in Network Editor.
   * Each file parameter item in the Parameter View has:
-    * A 'File Choose' button to choose a file for it, and
-    * A 'Preview' button to preview the image in MPlay minimal mode.
+    * A `File Choose` button to choose a file for it (the dialog has image preview on), and
+    * A `Preview` button to preview the image in MPlay minimal mode.
   * The Raw Value of the file parameter in the Parameter View can be edited in place by double-clicking on it.
 * Tools UI
-  * Files in the Parameter View can be copied or moved to a desination diretory, and the raw value file paths of the parmaeters will be updated to the new paths.
-  * <UDIM> files are supported.
-  * $F or ${F} seqeuence files are supported. $F can have zero paddings, such as $F4 etc.
+  * Files in the Parameter View can be copied or moved to a desination diretory, and the Raw Value file paths of the parmaeters will be updated to the new paths.
+  * <UDIM> sequence file paths are supported.
+  * Time dependent sequence paths with $F or ${F} are supported. The $F or ${F} can have zero paddings, such as $F4, $F6, ${F4} etc.
 
 ## Installation
 * Go to [Releases](https://github.com/vfxkevin/hou_file_manager/releases) and download the **source code zip file** from the latest release.
