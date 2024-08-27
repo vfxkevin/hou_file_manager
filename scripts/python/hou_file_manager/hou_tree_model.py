@@ -40,6 +40,10 @@ class TreeItemDataObject(BaseTreeItemData):
         self._property_set_attrs = property_set_attrs
         self._bg_color = bg_color
 
+        if isinstance(orig_data, hou.OpNode):
+            orig_data.addEventCallback((hou.nodeEventType.BeingDeleted, ),
+                                       self.data_deleted)
+
     def len(self):
         return len(self._property_get_attrs)
 
@@ -74,38 +78,10 @@ class TreeItemDataObject(BaseTreeItemData):
         icon_name = self._orig_data.type().icon()
         return hou.qt.createIcon(icon_name)
 
-
-def add_path_to_tree(path, target_tree_item, current_path,
-                     property_get_attrs, property_set_attrs):
-    parts = path.strip(const.PATH_DELIMITER).split(const.PATH_DELIMITER)
-
-    current = parts[0]
-    the_rest = parts[1:]
-
-    child = target_tree_item.get_child_by_column_data(current)
-    current_path = '{}{}{}'.format(current_path,
-                                   const.PATH_DELIMITER,
-                                   current)
-
-    if not child:
-        # get the hou node
-        hou_node = hou.node(current_path)
-        # create a tree item
-        if not the_rest:
-            bg_color = const.BG_RED
-        else:
-            bg_color = None
-        child = TreeItem(TreeItemDataObject(hou_node, property_get_attrs,
-                                            property_set_attrs, bg_color))
-        target_tree_item.append_child(child)
-
-    if the_rest:
-        # continue adding the rest
-        add_path_to_tree(const.PATH_DELIMITER.join(the_rest),
-                         child,
-                         current_path,
-                         property_get_attrs,
-                         property_set_attrs)
+    def data_deleted(self, node, event_type, **kwargs):
+        if self.tree_item:
+            parent = self.tree_item.parent()
+            parent.remove_child(self.tree_item)
 
 
 class HouNodeTreeModel(BaseTreeModel):
@@ -119,8 +95,11 @@ class HouNodeTreeModel(BaseTreeModel):
 
         # root item
         hou_root_node = hou.node(const.PATH_DELIMITER)
-        root_item = TreeItem(TreeItemDataObject(
-            hou_root_node, self._property_get_attrs, self._property_set_attrs))
+        root_item = TreeItem(
+            TreeItemDataObject(hou_root_node,
+                               self._property_get_attrs,
+                               self._property_set_attrs)
+        )
 
         super().__init__(path_list, headers, root_item, parent)
 
@@ -146,9 +125,9 @@ class HouNodeTreeModel(BaseTreeModel):
         data.sort()
 
         for path in data:
-            add_path_to_tree(path, self._root_item,'',
-                             self._property_get_attrs,
-                             self._property_set_attrs)
+            self.add_path_to_tree(path, self._root_item,'',
+                                  self._property_get_attrs,
+                                  self._property_set_attrs)
 
     def get_hou_object(self, index: QModelIndex):
         if not index.isValid():
@@ -158,6 +137,42 @@ class HouNodeTreeModel(BaseTreeModel):
         item = self.get_item(index)
 
         return item.tree_item_data().get_orig_data()
+
+    def add_path_to_tree(self, path, target_tree_item, current_path,
+                         property_get_attrs, property_set_attrs):
+        parts = path.strip(const.PATH_DELIMITER).split(const.PATH_DELIMITER)
+
+        current = parts[0]
+        the_rest = parts[1:]
+
+        child = target_tree_item.get_child_by_column_data(current)
+        current_path = '{}{}{}'.format(current_path,
+                                       const.PATH_DELIMITER,
+                                       current)
+
+        if not child:
+            # get the hou node
+            hou_node = hou.node(current_path)
+            # create a tree item
+            if not the_rest:
+                bg_color = const.BG_RED
+            else:
+                bg_color = None
+            child = TreeItem(
+                TreeItemDataObject(hou_node,
+                                   property_get_attrs,
+                                   property_set_attrs,
+                                   bg_color)
+            )
+            target_tree_item.append_child(child)
+
+        if the_rest:
+            # continue adding the rest
+            self.add_path_to_tree(const.PATH_DELIMITER.join(the_rest),
+                                  child,
+                                  current_path,
+                                  property_get_attrs,
+                                  property_set_attrs)
 
 
 class HouParmTreeModel(BaseTreeModel):
@@ -189,11 +204,10 @@ class HouParmTreeModel(BaseTreeModel):
             parm = hou.parm(parm_path)
             # add the node as a child to the root
             child = TreeItem(
-                TreeItemDataObject(
-                    parm,
-                    property_get_attrs=self._property_get_attrs,
-                    property_set_attrs=self._property_set_attrs
-                ))
+                TreeItemDataObject(parm,
+                                   self._property_get_attrs,
+                                   self._property_set_attrs)
+            )
             self._root_item.append_child(child)
 
             # then add file parameters as children to the node

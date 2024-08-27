@@ -29,10 +29,11 @@ from . import constants as const
 
 
 class BaseTreeItemData:
-    def __init__(self, orig_data, icon=None, bg_color=None):
+    def __init__(self, orig_data, tree_item=None, icon=None, bg_color=None):
         self._orig_data = orig_data
         self._icon = icon
         self._bg_color = bg_color
+        self.tree_item = tree_item
 
     def len(self):
         raise NotImplementedError
@@ -85,6 +86,7 @@ class TreeItem:
         self._data = data
         self._parent = parent
         self._children = []
+        self._data.tree_item = self
 
     def append_child(self, item: 'TreeItem'):
         self._children.append(item)
@@ -110,6 +112,16 @@ class TreeItem:
 
     def children(self):
         return self._children
+
+    def remove_child(self, item: 'TreeItem'):
+        self.children().remove(item)
+
+    def remove_children(self, position: int, count: int) -> bool:
+        if position < 0 or position + count > len(self.children()):
+            return False
+
+        for row in range(count):
+            self.children().pop(position)
 
     def parent(self):
         return self._parent
@@ -255,6 +267,19 @@ class BaseTreeModel(QAbstractItemModel):
             self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
 
         return result
+
+    def removeRows(self, position: int, rows: int,
+                  parent: QModelIndex = QModelIndex()) -> bool:
+
+        parent_item = self.get_item(parent)
+        if not parent_item:
+            return False
+
+        self.beginRemoveRows(parent, position, position + rows -1)
+        success = parent_item.remove_children(position, rows)
+        self.endRemoveRows()
+
+        return success
 
     def set_up_model_data(self, data: list):
         raise NotImplementedError
