@@ -8,12 +8,14 @@
   <interface name="hou_file_manager" label="Hou File Manager" icon="MISC_python" showNetworkNavigationBar="false" help_url="">
     <script><![CDATA[
 from hou_file_manager import browser
+from hou_file_manager import constants as const
 
 THE_BROWSER = None
 
 def onCreateInterface():
     global THE_BROWSER
     THE_BROWSER = browser.FilePathManagerBrowser()
+    setattr(hou.session, const.SESSION_VAR, THE_BROWSER)
     return THE_BROWSER
 
 def onHipFileAfterClear():

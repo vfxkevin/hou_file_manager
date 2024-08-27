@@ -54,4 +54,6 @@ BG_GREEN = (0, 100, 0)
 ICON_SIZE = hou.ui.scaledSize(16)
 ADD_ICON = hou.qt.createIcon("BUTTONS_list_add", ICON_SIZE, ICON_SIZE)
 
+SESSION_VAR = 'GLOBAL_BROWSER_UI_HOU_FILE_MANAGER'
+
 

@@ -79,9 +79,16 @@ class TreeItemDataObject(BaseTreeItemData):
         return hou.qt.createIcon(icon_name)
 
     def data_deleted(self, node, event_type, **kwargs):
-        if self.tree_item:
-            parent = self.tree_item.parent()
-            parent.remove_child(self.tree_item)
+        if not hasattr(hou.session, const.SESSION_VAR):
+            print('No Hou File Manager UI in hou.session to refresh.')
+            return
+
+        browser = getattr(hou.session,  const.SESSION_VAR)
+        if not browser:
+            print('Browser not found from session var.')
+            return
+
+        browser.on_refresh()
 
 
 class HouNodeTreeModel(BaseTreeModel):
