@@ -15,6 +15,16 @@ def onCreateInterface():
     global THE_BROWSER
     THE_BROWSER = browser.FilePathManagerBrowser()
     return THE_BROWSER
+
+def onHipFileAfterClear():
+    THE_BROWSER.on_refresh()
+
+def onHipFileAfterLoad():
+    THE_BROWSER.on_refresh()
+
+def onHipFileAfterMerge():
+    THE_BROWSER.on_refresh()
+
 ]]></script>
     <includeInPaneTabMenu menu_position="0" create_separator="false"/>
     <includeInToolbarMenu menu_position="202" create_separator="false"/>
