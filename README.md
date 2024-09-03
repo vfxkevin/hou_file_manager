@@ -44,7 +44,7 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 * Tools UI
   * Files in the Parameter View can be copied or moved to a desination diretory, and the Raw Value file paths of the parmaeters will be updated to the new paths.
   * <UDIM> sequence file paths are supported.
-  * Time dependent sequence paths with $F or ${F} are supported. The $F or ${F} can have zero paddings, such as $F4, $F6, ${F4} etc.
+  * Time dependent sequence paths with $F or ${F} are supported. The $F or ${F} can have zero paddings, such as `$F4`, `$F6`, `${F4}` etc.
 
 ## Installation
 * Go to [Releases](https://github.com/vfxkevin/hou_file_manager/releases) and download the **source code zip file** from the latest release.
