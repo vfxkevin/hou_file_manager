@@ -42,7 +42,10 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
     * A `Preview` button to preview the image in MPlay minimal mode.
   * The Raw Value of the file parameter in the Parameter View can be edited in place by double-clicking on it.
 * Tools UI
-  * Files in the Parameter View can be copied or moved to a desination diretory, and the Raw Value file paths of the parmaeters will be updated to the new paths.
+  * Files in the Parameter View can be batch processed, and the Raw Value file paths of the parmaeters will be updated to the new paths. Currently supported actions are:
+    * `Copy` : To copy the files specified in the parameters to a destination directory, and then update the parameter file paths to the new paths. But if the files specified in the parameters don't exist or the copying action failed, nothing will be copied and parameters won't be updated either.
+    * `Move` : To move the files specified in the parameters to a destination directory, and then update the parameter file paths to the new paths. But if the files specified in the parameters don't exist or the moving action failed, nothing will be moved and parameters won't be updated either.
+    * `Repath` : To change the directory paths of the files specified in the parameters to a new desination directory. It just simply changes the file path values of the parameters, and won't check if the file paths are really pointing to real files or not.
   * <UDIM> sequence file paths are supported.
   * Time dependent sequence paths with $F or ${F} are supported. The $F or ${F} can have zero paddings, such as `$F4`, `$F6`, `${F4}` etc.
 
