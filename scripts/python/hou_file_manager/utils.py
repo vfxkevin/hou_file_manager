@@ -33,6 +33,9 @@ def process_parm_files(parm, file_action, dest_dir):
     raw_value = parm.rawValue()
     eval_value = parm.eval()
 
+    if not raw_value:
+        return False
+
     # Houdini doesn't support time-dependent UDIM texture files.
     # We will check if the file path contains <UDIM> first.
     if '<UDIM>' in raw_value:

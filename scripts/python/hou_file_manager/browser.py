@@ -343,9 +343,10 @@ class FilePathManagerBrowser(QFrame):
         self.ui_grp_box_multi = QGroupBox(
             'Batch process:')
         parm_layout_grp_box_mlt = QVBoxLayout()
-        self.ui_copy_or_move_combo = hou.qt.ComboBox()
-        self.ui_copy_or_move_combo.addItem('Copy')
-        self.ui_copy_or_move_combo.addItem('Move')
+        self.ui_batch_process_action_combo = hou.qt.ComboBox()
+        self.ui_batch_process_action_combo.addItem('Copy')
+        self.ui_batch_process_action_combo.addItem('Move')
+        self.ui_batch_process_action_combo.addItem('Repath')
         selection_option_button_grp = QButtonGroup()
         self.ui_selected_parms_option = QRadioButton(
             'file(s) of selected parm(s)')
@@ -360,13 +361,14 @@ class FilePathManagerBrowser(QFrame):
         dest_dir_browse = hou.qt.FileChooserButton()
         dest_dir_browse.setFileChooserFilter(hou.fileType.Directory)
         dest_dir_browse.setFileChooserTitle('Choose destination directory')
+        dest_dir_browse.fileSelected.connect(self.on_dest_dir_browse)
         hlayout.addWidget(dest_dir_browse)
         run_it = QPushButton('Run')
         run_it.clicked.connect(self.on_action_run_it)
         note_label = QLabel(
             'NOTE: <UDIM> or $F (or ${F}) styles\n'
             'of sequence file paths are supported.')
-        parm_layout_grp_box_mlt.addWidget(self.ui_copy_or_move_combo)
+        parm_layout_grp_box_mlt.addWidget(self.ui_batch_process_action_combo)
         parm_layout_grp_box_mlt.addWidget(self.ui_selected_parms_option)
         parm_layout_grp_box_mlt.addWidget(self.ui_all_parms_option)
         parm_layout_grp_box_mlt.addWidget(label)
@@ -546,7 +548,7 @@ class FilePathManagerBrowser(QFrame):
             return
 
         # Action
-        file_action = self.ui_copy_or_move_combo.currentText().lower()
+        file_action = self.ui_batch_process_action_combo.currentText().lower()
         if file_action not in const.FILE_ACTIONS:
             hou.ui.displayMessage('The action is not supported!\n'
                                   'Supported actions are : {}'
@@ -561,9 +563,15 @@ class FilePathManagerBrowser(QFrame):
             parm = (self._parm_tree_model.get_item(id_pair[0])
                     .get_raw_data().get_orig_data())
 
+            if not parm.rawValue():
+                continue
+
             # process parameter files
-            success = utils.process_parm_files(parm, file_action,
-                                               expanded_dest_dir)
+            if file_action == const.FILE_ACTION_REPATH:
+                success = True
+            else:
+                success = utils.process_parm_files(parm, file_action,
+                                                   expanded_dest_dir)
 
             if success:
                 # New file path (it is not expanded),
@@ -605,5 +613,5 @@ class FilePathManagerBrowser(QFrame):
         items = nodesearch.node_types(cur_cate)
         self.ui_node_type_combo.addItems(items)
 
-
-
+    def on_dest_dir_browse(self, dir_path):
+        self.ui_file_dest_dir.setText(dir_path)
