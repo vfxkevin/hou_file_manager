@@ -46,8 +46,8 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
     * `Copy` : To copy the files specified in the parameters to a destination directory, and then update the parameter file paths to the new paths. But if the files specified in the parameters don't exist or the copying action failed, nothing will be copied and parameters won't be updated either.
     * `Move` : To move the files specified in the parameters to a destination directory, and then update the parameter file paths to the new paths. But if the files specified in the parameters don't exist or the moving action failed, nothing will be moved and parameters won't be updated either.
     * `Repath` : To change the directory paths of the files specified in the parameters to a new desination directory. It just simply changes the file path values of the parameters, and won't check if the file paths are really pointing to real files or not.
-  * <UDIM> sequence file paths are supported.
-  * Time dependent sequence paths with $F or ${F} are supported. The $F or ${F} can have zero paddings, such as `$F4`, `$F6`, `${F4}` etc.
+  * `<UDIM>` sequence file paths are supported.
+  * Time dependent sequence paths with `$F` or `${F}` are supported. The `$F` or `${F}` can have zero paddings, such as `$F4`, `$F6`, `${F4}` etc.
 
 ## Installation
 * Go to [Releases](https://github.com/vfxkevin/hou_file_manager/releases) and download the **source code zip file** from the latest release.
