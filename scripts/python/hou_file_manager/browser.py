@@ -418,16 +418,24 @@ class FilePathManagerBrowser(QFrame):
 
         return centre_section_layout
 
+    def on_reset(self):
+        self.ui_root_path_text.setText('')
+        self.on_refresh()
+
     def on_refresh(self):
         """ The main callback for refreshing the UIs."""
 
         # Get the root node
         root_path = self.ui_root_path_text.text()
         if not root_path:
+            self.set_up_node_tree_model([])
+            self.set_up_parm_tree_model([])
             return
 
         root_node = hou.node(root_path)
         if not root_node:
+            self.set_up_node_tree_model([])
+            self.set_up_parm_tree_model([])
             return
 
         # Get the filters

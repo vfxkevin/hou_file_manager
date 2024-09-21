@@ -88,7 +88,7 @@ class TreeItemDataObject(BaseTreeItemData):
             print('Browser not found from session var.')
             return
 
-        browser.on_refresh()
+        browser.on_reset()
 
 
 class HouNodeTreeModel(BaseTreeModel):

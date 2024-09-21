@@ -18,14 +18,26 @@ def onCreateInterface():
     setattr(hou.session, const.SESSION_VAR, THE_BROWSER)
     return THE_BROWSER
 
+def onDestroyInterface():
+    THE_BROWSER.on_reset()
+
+def onHipFileBeforeClear():
+    THE_BROWSER.on_reset()
+
 def onHipFileAfterClear():
-    THE_BROWSER.on_refresh()
+    THE_BROWSER.on_reset()
+
+def onHipFileBeforeLoad():
+    THE_BROWSER.on_reset()
 
 def onHipFileAfterLoad():
-    THE_BROWSER.on_refresh()
+    THE_BROWSER.on_reset()
+
+def onHipFileBeforeMerge():
+    THE_BROWSER.on_reset()
 
 def onHipFileAfterMerge():
-    THE_BROWSER.on_refresh()
+    THE_BROWSER.on_reset()
 
 ]]></script>
     <includeInPaneTabMenu menu_position="0" create_separator="false"/>
