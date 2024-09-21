@@ -2,6 +2,9 @@
 A GUI tool and central place for managing all Houdini file paths (textures, images, caches, geometries) of node parameters.
 ![hou_file_manager_gui_01](https://github.com/user-attachments/assets/72080231-e58c-43fc-b32f-6c56a8f03f2f)
 
+## Tutorials
+* Youtube: https://youtu.be/LoOPm2v3AoQ
+
 ## Functionalities:
 * Refresh button for refreshing the Node View when Houdini scene is changed.
   * Node View selection will be cleared once Refresh button is clicked.
@@ -78,3 +81,4 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 
 ## TODOs
 * Logging UI.
+* Preview geometry file(s).
