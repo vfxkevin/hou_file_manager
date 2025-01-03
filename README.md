@@ -4,6 +4,7 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 
 ## Tutorials
 * Youtube: https://youtu.be/LoOPm2v3AoQ
+  * NOTE: Installation can be automated now! The Youtube video is only showing the manual method. So for the recommended installation method, please refer to the steps in this document below.
 
 ## Functionalities:
 * Refresh button for refreshing the Node View when Houdini scene is changed.
