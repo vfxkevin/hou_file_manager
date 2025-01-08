@@ -2,9 +2,11 @@
 A GUI tool and central place for managing all Houdini file paths (textures, images, caches, geometries) of node parameters.
 ![hou_file_manager_gui_01](https://github.com/user-attachments/assets/72080231-e58c-43fc-b32f-6c56a8f03f2f)
 
+
 ## Tutorials
 * Youtube: https://youtu.be/LoOPm2v3AoQ
   * NOTE: Installation can be automated now! The Youtube video is only showing the manual method. So for the recommended installation method, please refer to the steps in this document below.
+
 
 ## Functionalities:
 * Refresh button for refreshing the Node View when Houdini scene is changed.
@@ -53,6 +55,7 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
   * `<UDIM>` sequence file paths are supported.
   * Time dependent sequence paths with `$F` or `${F}` are supported. The `$F` or `${F}` can have zero paddings, such as `$F4`, `$F6`, `${F4}` etc.
 
+
 ## Installation
 1. Go to [Releases](https://github.com/vfxkevin/hou_file_manager/releases) and download the **source code zip file** from the latest release.
    * For example, release `v0.1.x` is downloaded.
@@ -87,9 +90,34 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
          ```
        * Please use back slashes in the path string.
        * Please replace the username with your actual user name as well.
-3. Re-launch Houdini.
-4. The Hou File Manager GUI can be found when creating a New Pane Tab.
-   ![hou_file_manager_pane_tab](https://github.com/user-attachments/assets/67130c8c-2be0-4c0d-91f1-efdc1c55eea4)
+3. Must re-start Houdini to load the tools.
+
+
+## Launch Hou File Manager Tool
+There are 3 methods to launch the GUI:
+* Load the `File Manager` shelf and use the first `File Manager` button to launch it.
+  * ![file_manager_shelf](https://github.com/user-attachments/assets/3d872471-af7b-479d-8a10-9386d30c448f)
+* Add a `New Pane Tab` to the main desktop.
+  * ![hou_file_manager_pane_tab](https://github.com/user-attachments/assets/67130c8c-2be0-4c0d-91f1-efdc1c55eea4)
+* In Network Editor, press hotkey `m` to load out quick radial menu.
+  * ![network_editor_radial_menu](https://github.com/user-attachments/assets/9c3f813d-1e7f-4c24-a063-31749b3733d0)
+
+## Other Tools
+* Other useful tools on the shelf/raidial menu:
+  * Out Null
+    * Create `Null` nodes (named OUT) and connect them to the outputs of the corresponding selected nodes.
+  * Obj Merge
+    * Create `Object Merge` nodes, put them on the side of the corresponding selected nodes, and set the `Object` parameter paths to the corresponding selected nodes.
+  * Merge
+    * Create a `Merge` node and connect all the selected nodes to the input of the Merge node.
+  * Switch
+    * Create a `Switch` node and connect all the selected nodes to the input of the Switch node.
+  * Geometry
+    * Create a `Geometry` node. But it will only work at `/obj` level.
+  * File Cache
+    * Create `File Cache` nodes and connect them to the outputs of the corresponding selected nodes.
+  * Transform
+    * Create `Transnform` nodes and connect them to the outputs of the correspoding selected nodes. 
 
 ## TODOs
 * Logging UI.
