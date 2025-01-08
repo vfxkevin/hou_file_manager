@@ -2,6 +2,10 @@
 A GUI tool and central place for managing all Houdini file paths (textures, images, caches, geometries) of node parameters.
 ![hou_file_manager_gui_01](https://github.com/user-attachments/assets/72080231-e58c-43fc-b32f-6c56a8f03f2f)
 
+## Tutorials
+* Youtube: https://youtu.be/LoOPm2v3AoQ
+  * NOTE: Installation can be automated now! The Youtube video is only showing the manual method. So for the recommended installation method, please refer to the steps in this document below.
+
 ## Functionalities:
 * Refresh button for refreshing the Node View when Houdini scene is changed.
   * Node View selection will be cleared once Refresh button is clicked.
@@ -50,31 +54,43 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
   * Time dependent sequence paths with `$F` or `${F}` are supported. The `$F` or `${F}` can have zero paddings, such as `$F4`, `$F6`, `${F4}` etc.
 
 ## Installation
-* Go to [Releases](https://github.com/vfxkevin/hou_file_manager/releases) and download the **source code zip file** from the latest release.
-  * For example, release `v0.1.1` is downloaded.
-* Unzip it to a location.
-  * In our example, say, it is `C:/Users/username/Documents/hou_file_manager-0.1.1`
-  * NOTE:
-    * This is a Windows path example. Please replace `username` with your actual user name.
-    * The actual package directory path is `C:/Users/username/Documents/hou_file_manager-0.1.1/hou_file_manager-0.1.1` (the double hou_file_manager-0.1.1) because the way it was zipped.
-* Move the `hou_file_manager.json` file into the `packages` directory inside the `Houdini user preference directory` ($HOUDINI_USER_PREF_DIR).
-  * On Windows, the `Houdini user preference directory` is `C:/Users/username/Documents/houdini20.5` (for Houdini 20.5)
-    * NOTE: Replace the `username` with the actual name on your computer for the actual path.
-  * Create a `packages` directory inside the `Houdini user preference directory` if there is none.
-* Modify the `hou_file_manager.json` file, so that the `HOU_FILE_MANAGER` env variable points to the above unzipped directory.
-  * In our example, it would be like:
-    ```
-          "env": [
-          {
-              "HOU_FILE_MANAGER": "C:/Users/username/Documents/hou_file_manager-0.1.1/hou_file_manager-0.1.1"
-          }
-      ]
-    ```
-  * Please use back slashes in the path string.
-  * Please replace the username with your actual user name as well.
-* Re-launch Houdini.
-* The Hou File Manager GUI can be found when creating a New Pane Tab.
-  * ![hou_file_manager_pane_tab](https://github.com/user-attachments/assets/67130c8c-2be0-4c0d-91f1-efdc1c55eea4)
+1. Go to [Releases](https://github.com/vfxkevin/hou_file_manager/releases) and download the **source code zip file** from the latest release.
+   * For example, release `v0.1.x` is downloaded.
+2. Two methods to install the package:
+   * **Method A (RECOMMENDED)** - Automated installation using Package Archive
+     * In Houdini, launch Package Browser
+       ![launch_package_browser](https://github.com/user-attachments/assets/8c1b9d61-441b-464e-8198-2356fbefb2db)
+     * In File menu, run Install Package Archive
+       ![package_browser_install_archive](https://github.com/user-attachments/assets/87b9abf6-8535-4956-935d-db23772a491c)
+     * Select the zip file in the previous step, and install to a sub-folder inside Houdini Packages folder.
+       ![install_package_archive](https://github.com/user-attachments/assets/a35f4b93-9720-4d9e-9e96-2867643d1da3)
+     * Ensure the package is installed and loaded
+       ![package_loaded](https://github.com/user-attachments/assets/83e0e8a1-002a-4d5f-974b-cb9488e7ac6b)
+   * **Method B** - Manual installtion (if customised installation needed, otherwise skip to step 3)
+     * Unzip it to a location.
+       * In our example, say, it is `C:/Users/username/Documents/hou_file_manager-0.1.1`
+       * NOTE:
+         * This is a Windows path example. Please replace `username` with your actual user name.
+         * The actual package directory path is `C:/Users/username/Documents/hou_file_manager-0.1.1/hou_file_manager-0.1.1` (the double hou_file_manager-0.1.1) because the way it was zipped.
+     * Move the `hou_file_manager.json` file into the `packages` directory inside the `Houdini user preference directory` ($HOUDINI_USER_PREF_DIR).
+       * On Windows, the `Houdini user preference directory` is `C:/Users/username/Documents/houdini20.5` (for Houdini 20.5)
+         * NOTE: Replace the `username` with the actual name on your computer for the actual path.
+       * Create a `packages` directory inside the `Houdini user preference directory` if there is none.
+     * Modify the `hou_file_manager.json` file, so that the `HOU_FILE_MANAGER` env variable points to the above unzipped directory.
+       * In our example, it would be like:
+         ```
+              "env": [
+              {
+                  "HOU_FILE_MANAGER": "C:/Users/username/Documents/hou_file_manager-0.1.1/hou_file_manager-0.1.1"
+              }
+           ]
+         ```
+       * Please use back slashes in the path string.
+       * Please replace the username with your actual user name as well.
+3. Re-launch Houdini.
+4. The Hou File Manager GUI can be found when creating a New Pane Tab.
+   ![hou_file_manager_pane_tab](https://github.com/user-attachments/assets/67130c8c-2be0-4c0d-91f1-efdc1c55eea4)
 
 ## TODOs
 * Logging UI.
+* Preview geometry file(s).
