@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="hou_file_manager" label="File Manager">
+    <memberTool name="file_manager"/>
+    <memberTool name="out_null"/>
+    <memberTool name="obj_merge"/>
+    <memberTool name="merge"/>
+    <memberTool name="switch"/>
+    <memberTool name="geometry"/>
+    <memberTool name="file_cache"/>
+    <memberTool name="transform"/>
+  </toolshelf>
+
+  <tool name="obj_merge" label="Obj Merge" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[
+GREEN = hou.Color((0, 1, 0))
+
+for n in hou.selectedNodes():
+    n_pos = n.position()
+    n_path = n.path()
+    parent = n.parent()
+    if parent.type().name() != 'geo':
+        continue
+    obj_merge = parent.createNode('object_merge')
+    obj_merge.setColor(GREEN)
+    offset = hou.Vector2((1.8, -0.5))
+    obj_merge.setPosition(n_pos + offset)
+    parm = obj_merge.parm('objpath1')
+    if parm:
+        parm.set(n_path)
+    ]]></script>
+  </tool>
+
+  <tool name="merge" label="Merge" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[
+BLUE = hou.Color((0, 0, 1))
+
+selected = hou.selectedNodes()
+if selected:
+    first_selected = selected[0]
+    first_selected_position = first_selected.position()
+    parent = first_selected.parent()
+    merge = first_selected.parent().createNode('merge')
+    #merge.setColor(BLUE)
+    offset = hou.Vector2((0.5, -1.5))
+    merge.setPosition(first_selected_position + offset)
+    
+    for n in selected:
+        this_parent = n.parent()
+
+        if this_parent != parent:
+            print('this parent is not the same parent')
+            continue
+
+        merge.setNextInput(n)]]></script>
+  </tool>
+
+  <tool name="switch" label="Switch" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[
+BLUE = hou.Color((0, 0, 1))
+
+selected = hou.selectedNodes()
+if selected:
+    first_selected = selected[0]
+    first_selected_position = first_selected.position()
+    parent = first_selected.parent()
+    switch_node = first_selected.parent().createNode('switch')
+    #switch_node.setColor(BLUE)
+    offset = hou.Vector2((-0.5, -1.5))
+    switch_node.setPosition(first_selected_position + offset)
+    
+    for n in selected:
+        this_parent = n.parent()
+
+        if this_parent != parent:
+            print('this parent is not the same parent')
+            continue
+
+        switch_node.setNextInput(n)]]></script>
+  </tool>
+
+  <tool name="file_manager" label="File Manager" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[desktop = hou.ui.curDesktop()
+
+desktop.createFloatingPaneTab(
+    hou.paneTabType.PythonPanel, 
+    python_panel_interface='hou_file_manager'
+    )]]></script>
+  </tool>
+
+  <tool name="out_null" label="Out Null" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[
+RED = hou.Color((1, 0, 0))
+GREEN = hou.Color((0, 1, 0))
+
+selected = hou.selectedNodes()
+
+for n in selected:
+    parent = n.parent()
+    null = parent.createNode('null', node_name='OUT')
+    null.setColor(RED)
+    # Connect all the output connections to the null node's output first.
+    out_con = n.outputConnections()
+    for con in out_con:
+        con_node = con.outputNode()
+        con_index = con.inputIndex()
+        con_node.setInput(con_index, null)
+    # Then connect the input of null to output of selected node.
+    null.setInput(0, n)
+    null.moveToGoodPosition()
+    null.setDisplayFlag(True)
+    null.setRenderFlag(True)
+    ]]></script>
+  </tool>
+
+  <tool name="geometry" label="Geometry" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[geo = hou.node('/obj').createNode('geo')
+geo.moveToGoodPosition()]]></script>
+  </tool>
+
+  <tool name="file_cache" label="File Cache" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[selected = hou.selectedNodes()
+
+for n in selected:
+    parent = n.parent()
+    null = parent.createNode('filecache', node_name='filecache_plz_change_name')
+    # Connect all the output connections to the null node's output first.
+    out_con = n.outputConnections()
+    for con in out_con:
+        con_node = con.outputNode()
+        con_index = con.inputIndex()
+        con_node.setInput(con_index, null)
+    # Then connect the input of null to output of selected node.
+    null.setInput(0, n)
+    null.moveToGoodPosition()]]></script>
+  </tool>
+
+  <tool name="transform" label="Transform" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[selected = hou.selectedNodes()
+
+for n in selected:
+    parent = n.parent()
+    null = parent.createNode('xform')
+    # Connect all the output connections to the null node's output first.
+    out_con = n.outputConnections()
+    for con in out_con:
+        con_node = con.outputNode()
+        con_index = con.inputIndex()
+        con_node.setInput(con_index, null)
+    # Then connect the input of null to output of selected node.
+    null.setInput(0, n)
+    null.moveToGoodPosition()]]></script>
+  </tool>
+</shelfDocument>
