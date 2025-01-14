@@ -103,7 +103,7 @@ There are 3 methods to launch the GUI:
   * ![network_editor_radial_menu](https://github.com/user-attachments/assets/9c3f813d-1e7f-4c24-a063-31749b3733d0)
 
 ## Other Tools
-* Other useful tools on the shelf/raidial menu:
+* These tools (on the shelf and raidial menu) are just shortcut scripts to create frequently used nodes:
   * Out Null
     * Create `Null` nodes (named OUT) and connect them to the outputs of the corresponding selected nodes.
   * Obj Merge
