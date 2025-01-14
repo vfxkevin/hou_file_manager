@@ -97,9 +97,9 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 There are 3 methods to launch the GUI:
 * Load the `File Manager` shelf and use the first `File Manager` button to launch it.
   * ![file_manager_shelf](https://github.com/user-attachments/assets/3d872471-af7b-479d-8a10-9386d30c448f)
-* Add a `New Pane Tab` to the main desktop.
+* Add a `New Pane Tab` of `Hou File Manager` to the main desktop.
   * ![hou_file_manager_pane_tab](https://github.com/user-attachments/assets/67130c8c-2be0-4c0d-91f1-efdc1c55eea4)
-* In Network Editor, press hotkey `m` to load out quick radial menu.
+* In Network Editor, press hotkey `m` to load out quick radial menu, and choose `File Manager`.
   * ![network_editor_radial_menu](https://github.com/user-attachments/assets/9c3f813d-1e7f-4c24-a063-31749b3733d0)
 
 ## Other Tools
