@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import hou
+import re
 
 PATH_DELIMITER = '/'
 
@@ -41,11 +42,23 @@ PARM_SET_ATTRS = ['', '', 'set']
 NODE_SET_ATTRS = ['']
 
 # File actions
-FILE_ACTION_COPY = 'copy'
-FILE_ACTION_MOVE = 'move'
-FILE_ACTION_REPATH = 'repath'
-FILE_ACTIONS = [FILE_ACTION_COPY, FILE_ACTION_MOVE, FILE_ACTION_REPATH]
+FILE_ACTION_NONE = 'None -> ONLY update parameter, NOT making changes to files'
+FILE_ACTION_COPY = 'Copy -> Update parameter AND copy files to new paths'
+FILE_ACTION_MOVE = 'Move -> Update parameter AND move files to new paths'
+FILE_ACTIONS = [FILE_ACTION_NONE, FILE_ACTION_COPY, FILE_ACTION_MOVE]
 
+# String replace functions
+PYTHON_STR_REPLACE = 'Python: str.replace()'
+STR_REPLACE = (PYTHON_STR_REPLACE,
+               lambda pattern, repl, string:
+               string.replace(pattern, repl)
+               )
+PYTHON_RE_SUBSTITUTE = 'Python: re.sub()'
+REGEX_SUBSTITUTE = (PYTHON_RE_SUBSTITUTE,
+                    lambda pattern, repl, string:
+                    re.sub(pattern, repl, string)
+                    )
+STR_REPLACE_FUNCS = [STR_REPLACE, REGEX_SUBSTITUTE]
 
 # Colors
 BG_RED = (100, 0, 0)

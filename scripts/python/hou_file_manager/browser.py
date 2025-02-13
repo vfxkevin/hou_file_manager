@@ -21,23 +21,25 @@
 # SOFTWARE.
 
 import os
+import re
 import subprocess
 from functools import partial
 
-from PySide2.QtWidgets import QWidget, QFrame, QGroupBox
+from PySide2.QtWidgets import (QWidget, QFrame, QGroupBox, QTableWidget,
+                               QTableWidgetItem)
 from PySide2.QtWidgets import (QAbstractItemView, QListView, QTreeView,
                                QHeaderView)
 from PySide2.QtWidgets import (QPushButton, QLineEdit, QLabel,
                                QRadioButton, QCheckBox)
 from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QScrollArea
 from PySide2.QtWidgets import QTabWidget, QSplitter, QButtonGroup
-from PySide2.QtWidgets import QSizePolicy
+from PySide2.QtWidgets import QDialog
 from PySide2.QtCore import QModelIndex
 from PySide2.QtCore import Qt
+from PySide2.QtGui import QIntValidator
 
 import hou
 import nodesearch
-import resourceui
 
 from . import constants as const
 from . import matchers
@@ -339,47 +341,129 @@ class FilePathManagerBrowser(QFrame):
         tools_widget = QWidget()
         tools_layout = QVBoxLayout()
 
-        # create a GroupBox for multiple selections
-        self.ui_grp_box_multi = QGroupBox(
-            'Batch process:')
-        parm_layout_grp_box_mlt = QVBoxLayout()
-        self.ui_batch_process_action_combo = hou.qt.ComboBox()
-        self.ui_batch_process_action_combo.addItem('Copy')
-        self.ui_batch_process_action_combo.addItem('Move')
-        self.ui_batch_process_action_combo.addItem('Repath')
+        # create a GroupBox for batch process files
+        self.ui_batch_process_grp_box = QGroupBox('Batch Processing')
+        batch_process_grp_box_layout = QVBoxLayout()
+
+        # radio group
+        selection_hlayout = QHBoxLayout()
+        repath_label = QLabel("Repath :")
         selection_option_button_grp = QButtonGroup()
-        self.ui_selected_parms_option = QRadioButton(
-            'file(s) of selected parm(s)')
+        self.ui_selected_parms_option = QRadioButton('Selected parm(s)')
         self.ui_selected_parms_option.setChecked(True)
-        self.ui_all_parms_option = QRadioButton('file(s) of all listed parm(s)')
+        self.ui_all_parms_option = QRadioButton('All listed parm(s)')
         selection_option_button_grp.addButton(self.ui_selected_parms_option)
         selection_option_button_grp.addButton(self.ui_all_parms_option)
-        label = QLabel(' and set Parm path(s) to:')
-        hlayout = QHBoxLayout()
-        self.ui_file_dest_dir = QLineEdit('$HIP/tex/')
-        hlayout.addWidget(self.ui_file_dest_dir)
-        dest_dir_browse = hou.qt.FileChooserButton()
-        dest_dir_browse.setFileChooserFilter(hou.fileType.Directory)
-        dest_dir_browse.setFileChooserTitle('Choose destination directory')
-        dest_dir_browse.fileSelected.connect(self.on_dest_dir_browse)
-        hlayout.addWidget(dest_dir_browse)
+        selection_hlayout.addWidget(repath_label)
+        selection_hlayout.addWidget(self.ui_selected_parms_option)
+        selection_hlayout.addWidget(self.ui_all_parms_option)
+        selection_hlayout.setStretch(0, 1)
+        selection_hlayout.setStretch(1, 1)
+        selection_hlayout.setStretch(2, 1)
+
+        string_replace_grp_box = QGroupBox('String Replace')
+        string_replace_grp_box_layout = QVBoxLayout()
+
+        pattern_label = QLabel("Pattern string:")
+        pattern_hlayout = QHBoxLayout()
+        self.ui_pattern_str = QLineEdit('')
+        pattern_path_browse = hou.qt.FileChooserButton()
+        pattern_path_browse.setFileChooserFilter(hou.fileType.Directory)
+        pattern_path_browse.setFileChooserTitle('Choose source directory')
+        pattern_path_browse.fileSelected.connect(self.on_pattern_path_browse)
+        pattern_hlayout.addWidget(self.ui_pattern_str)
+        pattern_hlayout.addWidget(pattern_path_browse)
+
+        replacement_label = QLabel('Replacement string:')
+        replacement_hlayout = QHBoxLayout()
+        self.ui_replacement_str = QLineEdit('$HIP/tex/')
+        replacement_path_browse = hou.qt.FileChooserButton()
+        replacement_path_browse.setFileChooserFilter(hou.fileType.Directory)
+        replacement_path_browse.setFileChooserTitle(
+            'Choose destination directory')
+        replacement_path_browse.fileSelected.connect(
+            self.on_replacement_path_browse)
+        replacement_hlayout.addWidget(self.ui_replacement_str)
+        replacement_hlayout.addWidget(replacement_path_browse)
+
+        syntax_layout = QHBoxLayout()
+        syntax_label = QLabel('Function to use :')
+        self.ui_syntax_combo_box = hou.qt.ComboBox()
+        for func_tuple in const.STR_REPLACE_FUNCS:
+            self.ui_syntax_combo_box.addItem(func_tuple[0])
+        # syntax_count_label = QLabel('Count :')
+        # self.ui_syntax_count = QLineEdit('-1')
+        # vali = QIntValidator()
+        # vali.setBottom(-1)
+        # self.ui_syntax_count.setValidator(vali)
+        # self.ui_syntax_count.setToolTip(
+        #     'Default -1 to replace/substitute all occurrences.\n'
+        #     'Use 0 for not doing anything.\n'
+        #     'Value greater than 0 to replace/substitute corresponding '
+        #     'number of occurrences.'
+        # )
+        syntax_layout.addWidget(syntax_label)
+        syntax_layout.addWidget(self.ui_syntax_combo_box)
+        # syntax_layout.addWidget(syntax_count_label)
+        # syntax_layout.addWidget(self.ui_syntax_count)
+        syntax_layout.setStretch(1, 1)
+
+        string_replace_grp_box_layout.addWidget(pattern_label)
+        string_replace_grp_box_layout.addLayout(pattern_hlayout)
+        string_replace_grp_box_layout.addWidget(replacement_label)
+        string_replace_grp_box_layout.addLayout(replacement_hlayout)
+        string_replace_grp_box_layout.addLayout(syntax_layout)
+        string_replace_grp_box.setLayout(string_replace_grp_box_layout)
+
+        file_action_hlayout = QHBoxLayout()
+        file_action_label = QLabel('File action :')
+
+        self.ui_batch_process_action_combo = hou.qt.ComboBox()
+        for file_action in const.FILE_ACTIONS:
+            self.ui_batch_process_action_combo.addItem(file_action)
+        file_action_hlayout.addWidget(file_action_label)
+        file_action_hlayout.addWidget(self.ui_batch_process_action_combo)
+        file_action_hlayout.setStretch(1, 1)
+
+        buttons_hlayout = QHBoxLayout()
+        preview_it = QPushButton('Dryrun')
+
+        preview_it.setFixedHeight(40)
+        preview_it.clicked.connect(self.on_action_dryrun)
         run_it = QPushButton('Run')
-        run_it.clicked.connect(self.on_action_run_it)
+        run_it.setFixedHeight(40)
+        run_it.clicked.connect(self.on_action_run)
+        buttons_hlayout.addWidget(preview_it)
+        buttons_hlayout.addWidget(run_it)
+        buttons_hlayout.setStretch(0, 3)
+        buttons_hlayout.setStretch(1, 7)
+
         note_label = QLabel(
-            'NOTE: <UDIM> or $F (or ${F}) styles\n'
-            'of sequence file paths are supported.')
-        parm_layout_grp_box_mlt.addWidget(self.ui_batch_process_action_combo)
-        parm_layout_grp_box_mlt.addWidget(self.ui_selected_parms_option)
-        parm_layout_grp_box_mlt.addWidget(self.ui_all_parms_option)
-        parm_layout_grp_box_mlt.addWidget(label)
-        parm_layout_grp_box_mlt.addLayout(hlayout)
-        parm_layout_grp_box_mlt.addWidget(run_it)
-        parm_layout_grp_box_mlt.addWidget(note_label)
-        self.ui_grp_box_multi.setLayout(parm_layout_grp_box_mlt)
+            'NOTE: \n'
+            ' 1. The repath string replace will be applied to the RAW value '
+            'of the Parameter, not the expanded value.\n'
+            ' 2. File action can apply to sequence files with <UDIM> or $F '
+            '(or ${F}) in the filenames.\n'
+            ' 3. The intermediate-level directories will be created when '
+            'copying/moving the files to a non-existent directory.\n'
+            ' 4. Dryrun button is to only display the changes will be made '
+            'to the parameters, but not copy/move files or set parameter '
+            'values.'
+        )
+        note_label.setWordWrap(True)
+
+        batch_process_grp_box_layout.addLayout(selection_hlayout)
+        batch_process_grp_box_layout.addWidget(string_replace_grp_box)
+        batch_process_grp_box_layout.addLayout(file_action_hlayout)
+        batch_process_grp_box_layout.addStretch()
+        batch_process_grp_box_layout.addLayout(buttons_hlayout)
+        batch_process_grp_box_layout.addWidget(note_label)
+        self.ui_batch_process_grp_box.setLayout(
+            batch_process_grp_box_layout
+        )
 
         # Add the GroupBox to the layout
-        tools_layout.addWidget(self.ui_grp_box_multi)
-        tools_layout.addStretch()
+        tools_layout.addWidget(self.ui_batch_process_grp_box)
 
         # Set the layout and widget
         tools_widget.setLayout(tools_layout)
@@ -522,11 +606,42 @@ class FilePathManagerBrowser(QFrame):
         parm = (self._parm_tree_model.get_item(top_left)
                 .get_raw_data().get_orig_data())
 
-    def on_action_run_it(self):
+    def on_action_dryrun(self):
+        results = self.run_it(dryrun=True)
+        if not results:
+            return
+
+        dialog = QDialog(self)
+        layout = QVBoxLayout()
+
+        table = QTableWidget()
+        table.setColumnCount(2)
+        table.setRowCount(len(results))
+        table.setHorizontalHeaderLabels(['Original Raw Path', 'New Raw Path'])
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        for index, pair in enumerate(results):
+            table.setItem(index, 0, QTableWidgetItem(pair[0]))
+            table.setItem(index, 1, QTableWidgetItem(pair[1]))
+
+        layout.addWidget(table)
+        dialog.setLayout(layout)
+        dialog.setGeometry(400, 200, 800,500)
+        dialog.setModal(True)
+        dialog.exec_()
+
+    def on_action_run(self):
+        results = self.run_it(dryrun=False)
+
+    def run_it(self, dryrun=True):
+
+        # Just return if no tree model
+        if not self._parm_tree_model:
+            return
 
         # Each item of the list is a tuple of
         # (id_of_column_0, id_of_column_2)
-
         id_list = []
         if self.ui_selected_parms_option.isChecked():
             col_0_list = self.ui_parm_tree_view.selectionModel().selectedRows(0)
@@ -543,28 +658,47 @@ class FilePathManagerBrowser(QFrame):
                 id_list.append((self._parm_tree_model.index(row_id, 0),
                                 self._parm_tree_model.index(row_id, 2)))
 
-        # Dest dir
-        dest_dir = self.ui_file_dest_dir.text()
-        expanded_dest_dir = hou.text.expandString(dest_dir)
-        if not os.path.isdir(expanded_dest_dir):
-            hou.ui.displayMessage('The expended dest dir does not exist: \n'
-                                  '  --- Raw Path --- \n'
-                                  '    {}\n'
-                                  '  --- Expanded Path --- \n'
-                                  '    {}\n'
-                                  .format(dest_dir, expanded_dest_dir))
+        # replace function
+        syntax_combo_index = self.ui_syntax_combo_box.currentIndex()
+        if syntax_combo_index >= len(const.STR_REPLACE_FUNCS):
+            hou.ui.displayMessage('The str replace function is not supported!\n'
+                                  'Supported are : {}'
+                                  .format(const.STR_REPLACE_FUNCS))
+            return
+        replace_func = const.STR_REPLACE_FUNCS[syntax_combo_index][1]
+
+        # pattern string
+        pattern_string = self.ui_pattern_str.text()
+        if (const.STR_REPLACE_FUNCS[syntax_combo_index][0]
+                == const.PYTHON_RE_SUBSTITUTE):
+            pattern_string = re.escape(pattern_string)
+        if not pattern_string:
+            hou.ui.displayMessage('Pattern string is empty. Exiting.')
+            return
+        
+        # replacement string
+        replacement_string = self.ui_replacement_str.text()
+        if not replacement_string:
+            hou.ui.displayMessage('Replacement string is empty. Exiting.')
             return
 
         # Action
-        file_action = self.ui_batch_process_action_combo.currentText().lower()
+        file_action = self.ui_batch_process_action_combo.currentText()
         if file_action not in const.FILE_ACTIONS:
             hou.ui.displayMessage('The action is not supported!\n'
                                   'Supported actions are : {}'
                                   .format(const.FILE_ACTIONS))
             return
 
+
+
+        # count
+        # count = int(self.ui_syntax_count.text())
+
+        # results with original and new raw path pairs
+        results = []
+
         # Process
-        # for parm in parm_list:
         for id_pair in id_list:
 
             # get parm from id
@@ -574,27 +708,34 @@ class FilePathManagerBrowser(QFrame):
             if not parm.rawValue():
                 continue
 
+            # replace string
+            original_raw_path = parm.rawValue()
+            new_raw_path = replace_func(pattern_string, replacement_string,
+                                        original_raw_path)
+
             # process parameter files
-            if file_action == const.FILE_ACTION_REPATH:
+            if file_action == const.FILE_ACTION_NONE:
                 success = True
             else:
                 success = utils.process_parm_files(parm, file_action,
-                                                   expanded_dest_dir)
+                                                   new_raw_path,
+                                                   dryrun=dryrun)
 
             if success:
-                # New file path (it is not expanded),
-                # so MUST use the non-expanded dest_dir !
-                basename = os.path.basename(parm.rawValue())
-                new_file_path = os.path.join(dest_dir, basename)
+                # add to results
+                results.append((original_raw_path, new_raw_path))
+                if not dryrun:
+                    # Then set model data, the views will update automatically.
+                    self._parm_tree_model.setData(id_pair[1], new_raw_path,
+                                                  Qt.EditRole)
 
-                # Then set model data, the views will update automatically.
-                self._parm_tree_model.setData(id_pair[1], new_file_path,
-                                              Qt.EditRole)
+        return results
 
     def on_preview_file(self, row_id):
 
         index = self._parm_tree_model.index(row_id, 2)
-        parm = self._parm_tree_model.get_item(index).get_raw_data().get_orig_data()
+        parm = (self._parm_tree_model.get_item(index).get_raw_data()
+                .get_orig_data())
         file_path = parm.eval()
         raw_value = parm.rawValue()
         if not file_path:
@@ -603,7 +744,8 @@ class FilePathManagerBrowser(QFrame):
         if not os.path.isfile(file_path):
             hou.ui.displayMessage('The file does not exist:\n'
                                   '  {}\n'
-                                  '(Raw value: {})'.format(file_path, raw_value))
+                                  '(Raw value: {})'
+                                  .format(file_path, raw_value))
             return
 
         subprocess.Popen(['mplay', '-minimal', file_path])
@@ -621,5 +763,9 @@ class FilePathManagerBrowser(QFrame):
         items = nodesearch.node_types(cur_cate)
         self.ui_node_type_combo.addItems(items)
 
-    def on_dest_dir_browse(self, dir_path):
-        self.ui_file_dest_dir.setText(dir_path)
+    def on_pattern_path_browse(self, dir_path):
+        self.ui_pattern_str.setText(dir_path)
+
+    def on_replacement_path_browse(self, dir_path):
+        self.ui_replacement_str.setText(dir_path)
+
