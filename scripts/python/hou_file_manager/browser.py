@@ -669,9 +669,6 @@ class FilePathManagerBrowser(QFrame):
 
         # pattern string
         pattern_string = self.ui_pattern_str.text()
-        if (const.STR_REPLACE_FUNCS[syntax_combo_index][0]
-                == const.PYTHON_RE_SUBSTITUTE):
-            pattern_string = re.escape(pattern_string)
         if not pattern_string:
             hou.ui.displayMessage('Pattern string is empty. Exiting.')
             return
