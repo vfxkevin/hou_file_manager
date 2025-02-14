@@ -2,11 +2,17 @@
 A GUI tool and central place for managing all Houdini file paths (textures, images, caches, geometries) of node parameters.
 ![hou_file_manager_gui_01](https://github.com/user-attachments/assets/72080231-e58c-43fc-b32f-6c56a8f03f2f)
 
-
-## Tutorials
-* Youtube: https://youtu.be/LoOPm2v3AoQ
-  * NOTE: Installation can be automated now! The Youtube video is only showing the manual method. So for the recommended installation method, please refer to the steps in this document below.
-
+## What's New
+* v0.2.1
+  * The file paths can be changed by replacing partial strings using Python str.replace() or Python Regex re.sub() functions.
+  * Users can choose to only update parameters or also copy/move files to the new paths.
+  * Installation can be automated using Houdini's native Package tools.
+* v0.1.10
+  * UI for filtering nodes and filtering image/geometry parameters on them, so users can copy/move the files to new locations and update these parameters.
+  * Convenient UI for choosing image/geometry files for filtered parameters on filtered nodes.
+  * Tutorials
+    * Youtube: https://youtu.be/LoOPm2v3AoQ
+    * NOTE: Installation can be automated now! The Youtube video is only showing the manual method. So for the recommended installation method, please refer to the steps in this document below.
 
 ## Functionalities:
 * Refresh button for refreshing the Node View when Houdini scene is changed.
