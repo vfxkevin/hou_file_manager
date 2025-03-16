@@ -3,6 +3,9 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 ![hou_file_manager_gui_01](https://github.com/user-attachments/assets/72080231-e58c-43fc-b32f-6c56a8f03f2f)
 
 ## What's New
+* v0.2.2
+  * Added icons to the radial menu.
+  * Added new radial menu itesm and re-organized layout of the menu.
 * v0.2.1
   * The file paths can be changed by replacing partial strings using Python str.replace() or Python Regex re.sub() functions.
   * Users can choose to only update parameters or also copy/move files to the new paths.
