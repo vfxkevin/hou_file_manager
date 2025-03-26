@@ -9,7 +9,7 @@
 			"bindings":[
 				{
 					"action":"h.pane.wsheet.radial:kev_quick_menu",
-					"keys":["M"
+					"keys":["G"
 					]
 				}
 			]
