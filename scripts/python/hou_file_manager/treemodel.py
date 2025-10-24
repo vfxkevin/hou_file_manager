@@ -20,12 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PySide2.QtCore import QAbstractItemModel
-from PySide2.QtCore import QModelIndex
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QBrush, QColor
-
-from . import constants as const
+from .py_ui import QtWidgets, QtCore, QtGui
 
 
 class BaseTreeItemData:
@@ -158,7 +153,7 @@ class TreeItem:
         return self._data
 
 
-class BaseTreeModel(QAbstractItemModel):
+class BaseTreeModel(QtCore.QAbstractItemModel):
     def __init__(self, input_data: list, headers: list, root_item: TreeItem,
                  parent=None):
         super().__init__(parent)
@@ -170,7 +165,7 @@ class BaseTreeModel(QAbstractItemModel):
         # finally set up data for the model
         self.set_up_model_data(input_data)
 
-    def get_item(self, index: QModelIndex = QModelIndex()) -> TreeItem:
+    def get_item(self, index: QtCore.QModelIndex = QtCore.QModelIndex()) -> TreeItem:
         if index.isValid():
             item = index.internalPointer()
             if item:
@@ -178,20 +173,20 @@ class BaseTreeModel(QAbstractItemModel):
 
         return self._root_item
 
-    def headerData(self, section: int, orientation: Qt.Orientation,
-                   role: int = Qt.DisplayRole):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+    def headerData(self, section: int, orientation: QtCore.Qt.Orientation,
+                   role: int = QtCore.Qt.DisplayRole):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
             return self._headers[section]
 
         return None
 
     def index(self, row: int, column: int,
-              parent: QModelIndex = QModelIndex()) -> QModelIndex:
+              parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> QtCore.QModelIndex:
 
         if not self.hasIndex(row, column, parent):
-            return QModelIndex()
+            return QtCore.QModelIndex()
 
-        result_id = QModelIndex()
+        result_id = QtCore.QModelIndex()
 
         parent_item = self.get_item(parent)
         if not parent_item:
@@ -203,10 +198,10 @@ class BaseTreeModel(QAbstractItemModel):
 
         return result_id
 
-    def parent(self, index: QModelIndex = QModelIndex()) -> QModelIndex:
+    def parent(self, index: QtCore.QModelIndex = QtCore.QModelIndex()) -> QtCore.QModelIndex:
 
         if not index.isValid():
-            return QModelIndex()
+            return QtCore.QModelIndex()
 
         input_item = self.get_item(index)
         if input_item:
@@ -215,11 +210,11 @@ class BaseTreeModel(QAbstractItemModel):
             parent_item = None
 
         if not parent_item or parent_item == self._root_item:
-            return QModelIndex()
+            return QtCore.QModelIndex()
 
         return self.createIndex(parent_item.get_row_id(), 0, parent_item)
 
-    def rowCount(self, parent: QModelIndex) -> int:
+    def rowCount(self, parent: QtCore.QModelIndex) -> int:
 
         if parent.isValid() and parent.column() > 0:
             return 0
@@ -231,45 +226,47 @@ class BaseTreeModel(QAbstractItemModel):
         children = parent_item.children()
         return len(children)
 
-    def columnCount(self, parent: QModelIndex = None) -> int:
+    def columnCount(self, parent: QtCore.QModelIndex = None) -> int:
         return self._root_item.column_count()
 
-    def data(self, index: QModelIndex, role: Qt.ItemDataRole = Qt.DisplayRole):
+    def data(self, index: QtCore.QModelIndex,
+             role: QtCore.Qt.ItemDataRole = QtCore.Qt.DisplayRole):
         if not index.isValid():
             return None
 
         # Get tree item
         item = self.get_item(index)
 
-        if role == Qt.DisplayRole or role == Qt.EditRole:
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
             return item.data(index.column())
 
-        elif role == Qt.DecorationRole:
+        elif role == QtCore.Qt.DecorationRole:
             return item.get_raw_data().get_icon()
 
-        elif role == Qt.BackgroundRole:
+        elif role == QtCore.Qt.BackgroundRole:
             # get the original data which is the Hou Node.
             bg_color = item.get_raw_data().get_bg_color()
             if bg_color:
-                brush = QBrush(QColor(*bg_color))
+                brush = QtGui.QBrush(QtGui.QColor(*bg_color))
                 return brush
 
         return None
 
-    def setData(self, index: QModelIndex, value, role: int) -> bool:
-        if role != Qt.EditRole:
+    def setData(self, index: QtCore.QModelIndex, value, role: int) -> bool:
+        if role != QtCore.Qt.EditRole:
             return False
 
         item = self.get_item(index)
         result = item.set_data(index.column(), value)
 
         if result:
-            self.dataChanged.emit(index, index, [Qt.DisplayRole, Qt.EditRole])
+            self.dataChanged.emit(index, index,
+                                  [QtCore.Qt.DisplayRole, QtCore.Qt.EditRole])
 
         return result
 
     def removeRows(self, position: int, rows: int,
-                  parent: QModelIndex = QModelIndex()) -> bool:
+                  parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> bool:
 
         parent_item = self.get_item(parent)
         if not parent_item:

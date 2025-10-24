@@ -21,22 +21,10 @@
 # SOFTWARE.
 
 import os
-import re
 import subprocess
 from functools import partial
 
-from PySide2.QtWidgets import (QWidget, QFrame, QGroupBox, QTableWidget,
-                               QTableWidgetItem)
-from PySide2.QtWidgets import (QAbstractItemView, QListView, QTreeView,
-                               QHeaderView)
-from PySide2.QtWidgets import (QPushButton, QLineEdit, QLabel,
-                               QRadioButton, QCheckBox)
-from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QScrollArea
-from PySide2.QtWidgets import QTabWidget, QSplitter, QButtonGroup
-from PySide2.QtWidgets import QDialog
-from PySide2.QtCore import QModelIndex
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QIntValidator
+from .py_ui import QtWidgets, QtCore
 
 import hou
 import nodesearch
@@ -47,11 +35,11 @@ from . import utils
 from .hou_tree_model import HouParmTreeModel, HouNodeTreeModel
 
 
-class NodeParmFilterList(QWidget):
+class NodeParmFilterList(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self._layout = QVBoxLayout()
+        self._layout = QtWidgets.QVBoxLayout()
         self.setLayout(self._layout)
 
         self._filter_rows = []
@@ -77,7 +65,7 @@ class NodeParmFilterList(QWidget):
         return matchers
 
 
-class FilePathManagerBrowser(QFrame):
+class FilePathManagerBrowser(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -92,7 +80,7 @@ class FilePathManagerBrowser(QFrame):
         centre_section_layout = self.build_center_section()
 
         # --------------- root layout ---------------
-        root_layout = QVBoxLayout()
+        root_layout = QtWidgets.QVBoxLayout()
         root_layout.addLayout(top_section_layout, stretch=0)
         root_layout.addLayout(centre_section_layout, stretch=1)
 
@@ -124,8 +112,8 @@ class FilePathManagerBrowser(QFrame):
         self.ui_parm_tree_view.resizeColumnToContents(0)
         self.ui_parm_tree_view.setColumnWidth(1, 50)
         header = self.ui_parm_tree_view.header()
-        header.setSectionResizeMode(0, QHeaderView.Interactive)
-        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.Fixed)
         header.setSectionsMovable(False)
 
         # Add file chooser button to all column 1 items.
@@ -133,8 +121,8 @@ class FilePathManagerBrowser(QFrame):
         parm_row_count = self._parm_tree_model.rowCount(parm_root_index)
         for row in range(parm_row_count):
             # multiple buttons
-            buttons_widget = QWidget()
-            buttons_layout = QHBoxLayout()
+            buttons_widget = QtWidgets.QWidget()
+            buttons_layout = QtWidgets.QHBoxLayout()
             buttons_layout.setContentsMargins(0, 0, 0, 0)
             file_chooser_button = hou.qt.FileChooserButton()
             # get orig data
@@ -146,7 +134,7 @@ class FilePathManagerBrowser(QFrame):
                 file_chooser_button.setFileChooserIsImageChooser(True)
             elif matchers.parm_is_file_type(parm, 'geometry'):
                 file_chooser_button.setFileChooserFilter(hou.fileType.Geometry)
-            preview_button = QPushButton('P')
+            preview_button = QtWidgets.QPushButton('P')
             buttons_layout.addWidget(file_chooser_button)
             buttons_layout.addWidget(preview_button)
             buttons_widget.setLayout(buttons_layout)
@@ -165,12 +153,12 @@ class FilePathManagerBrowser(QFrame):
     def build_top_section(self):
 
         # create widgets
-        self.ui_refresh_button = QPushButton('Refresh')
+        self.ui_refresh_button = QtWidgets.QPushButton('Refresh')
         self.ui_refresh_button.clicked.connect(self.on_refresh)
 
         # choose root node section
-        root_path_layout = QHBoxLayout()
-        root_path_label = QLabel('Search In Path:')
+        root_path_layout = QtWidgets.QHBoxLayout()
+        root_path_label = QtWidgets.QLabel('Search In Path:')
         self.ui_root_path_text = hou.qt.SearchLineEdit()
         self.ui_root_path_text.editingFinished.connect(self.on_refresh)
         choose_root_button = hou.qt.NodeChooserButton()
@@ -180,26 +168,26 @@ class FilePathManagerBrowser(QFrame):
         root_path_layout.addWidget(choose_root_button)
 
         # filter layout
-        filter_grp_box = QGroupBox('Filters')
-        filter_layout = QVBoxLayout()
+        filter_grp_box = QtWidgets.QGroupBox('Filters')
+        filter_layout = QtWidgets.QVBoxLayout()
 
         # node filter layout
-        node_filter_layout = QHBoxLayout()
+        node_filter_layout = QtWidgets.QHBoxLayout()
         node_filter_layout.setSpacing(20)
 
         # Node name filter
-        node_name_filter_layout = QHBoxLayout()
+        node_name_filter_layout = QtWidgets.QHBoxLayout()
         node_name_filter_layout.setSpacing(5)
-        node_name_label = QLabel('Node Name:')
-        self.ui_node_name_filter_text = QLineEdit('*')
+        node_name_label = QtWidgets.QLabel('Node Name:')
+        self.ui_node_name_filter_text = QtWidgets.QLineEdit('*')
         self.ui_node_name_filter_text.editingFinished.connect(self.on_refresh)
         node_name_filter_layout.addWidget(node_name_label)
         node_name_filter_layout.addWidget(self.ui_node_name_filter_text)
 
         # Node type filter
-        node_type_filter_layout = QHBoxLayout()
+        node_type_filter_layout = QtWidgets.QHBoxLayout()
         node_type_filter_layout.setSpacing(5)
-        node_type_label = QLabel('Node Type:')
+        node_type_label = QtWidgets.QLabel('Node Type:')
         self.ui_node_type_category_combo = hou.qt.ComboBox()
 
         cate = list(hou.nodeTypeCategories().items())
@@ -227,22 +215,22 @@ class FilePathManagerBrowser(QFrame):
         node_filter_layout.addLayout(node_type_filter_layout, stretch=1)
 
         # parm filter layout
-        parm_filter_layout = QHBoxLayout()
+        parm_filter_layout = QtWidgets.QHBoxLayout()
         parm_filter_layout.setSpacing(20)
 
         # Parm name filter
-        parm_name_filter_layout = QHBoxLayout()
+        parm_name_filter_layout = QtWidgets.QHBoxLayout()
         parm_name_filter_layout.setSpacing(5)
-        parm_name_label = QLabel('Parm Name:')
-        self.ui_parm_name_filter_text = QLineEdit('*')
+        parm_name_label = QtWidgets.QLabel('Parm Name:')
+        self.ui_parm_name_filter_text = QtWidgets.QLineEdit('*')
         self.ui_parm_name_filter_text.editingFinished.connect(self.on_refresh)
         parm_name_filter_layout.addWidget(parm_name_label)
         parm_name_filter_layout.addWidget(self.ui_parm_name_filter_text)
 
         # Parm File type filter
-        parm_file_type_filter_layout = QHBoxLayout()
+        parm_file_type_filter_layout = QtWidgets.QHBoxLayout()
         parm_file_type_filter_layout.setSpacing(5)
-        file_type_label = QLabel('Parm File Type:')
+        file_type_label = QtWidgets.QLabel('Parm File Type:')
         parm_file_type_filter_layout.addWidget(file_type_label)
         self.ui_file_type_combo = hou.qt.ComboBox()
         self.ui_file_type_combo.addItem('Image')
@@ -263,7 +251,7 @@ class FilePathManagerBrowser(QFrame):
         filter_grp_box.setLayout(filter_layout)
 
         # top section layout
-        top_section_layout = QVBoxLayout()
+        top_section_layout = QtWidgets.QVBoxLayout()
         top_section_layout.addWidget(self.ui_refresh_button)
         top_section_layout.addLayout(root_path_layout)
         top_section_layout.addWidget(filter_grp_box)
@@ -272,14 +260,14 @@ class FilePathManagerBrowser(QFrame):
 
     def build_node_view_widget(self):
         # Top widget and layout
-        node_view_top_widget = QWidget()
-        node_view_layout = QHBoxLayout()
+        node_view_top_widget = QtWidgets.QWidget()
+        node_view_layout = QtWidgets.QHBoxLayout()
 
         # The tree view
-        self.ui_node_tree_view = QTreeView()
+        self.ui_node_tree_view = QtWidgets.QTreeView()
         self.ui_node_tree_view.setAlternatingRowColors(True)
         self.ui_node_tree_view.setSelectionMode(
-            QAbstractItemView.ExtendedSelection)
+            QtWidgets.QAbstractItemView.ExtendedSelection)
         self.ui_node_tree_view.setToolTip(
             'Node View:\n'
             '* Select nodes to show parameters details:\n'
@@ -303,14 +291,14 @@ class FilePathManagerBrowser(QFrame):
 
     def build_parm_view_widget(self):
         # Top widget and layout
-        parm_view_top_widget = QWidget()
-        parm_view_layout = QHBoxLayout()
+        parm_view_top_widget = QtWidgets.QWidget()
+        parm_view_layout = QtWidgets.QHBoxLayout()
 
         # The tree view
-        self.ui_parm_tree_view = QTreeView()
+        self.ui_parm_tree_view = QtWidgets.QTreeView()
         self.ui_parm_tree_view.setAlternatingRowColors(True)
         self.ui_parm_tree_view.setSelectionMode(
-            QAbstractItemView.ExtendedSelection)
+            QtWidgets.QAbstractItemView.ExtendedSelection)
         self.ui_parm_tree_view.setToolTip(
             'Parameter View:\n'
             '* To select parameter(s) for "Batch Processing" (right panel):\n'
@@ -331,27 +319,27 @@ class FilePathManagerBrowser(QFrame):
 
     def build_tools_n_log_widget(self):
         # create tab widget
-        tools_n_log_top_widget = QTabWidget()
+        tools_n_log_top_widget = QtWidgets.QTabWidget()
 
         # create the scroll area
-        tools_scroll_area = QScrollArea()
+        tools_scroll_area = QtWidgets.QScrollArea()
         tools_scroll_area.setWidgetResizable(True)
 
         # Create widget and layout
-        tools_widget = QWidget()
-        tools_layout = QVBoxLayout()
+        tools_widget = QtWidgets.QWidget()
+        tools_layout = QtWidgets.QVBoxLayout()
 
         # create a GroupBox for batch process files
-        self.ui_batch_process_grp_box = QGroupBox('Batch Processing')
-        batch_process_grp_box_layout = QVBoxLayout()
+        self.ui_batch_process_grp_box = QtWidgets.QGroupBox('Batch Processing')
+        batch_process_grp_box_layout = QtWidgets.QVBoxLayout()
 
         # radio group
-        selection_hlayout = QHBoxLayout()
-        repath_label = QLabel("Repath :")
-        selection_option_button_grp = QButtonGroup()
-        self.ui_selected_parms_option = QRadioButton('Selected parm(s)')
+        selection_hlayout = QtWidgets.QHBoxLayout()
+        repath_label = QtWidgets.QLabel("Repath :")
+        selection_option_button_grp = QtWidgets.QButtonGroup()
+        self.ui_selected_parms_option = QtWidgets.QRadioButton('Selected parm(s)')
         self.ui_selected_parms_option.setChecked(True)
-        self.ui_all_parms_option = QRadioButton('All listed parm(s)')
+        self.ui_all_parms_option = QtWidgets.QRadioButton('All listed parm(s)')
         selection_option_button_grp.addButton(self.ui_selected_parms_option)
         selection_option_button_grp.addButton(self.ui_all_parms_option)
         selection_hlayout.addWidget(repath_label)
@@ -361,12 +349,12 @@ class FilePathManagerBrowser(QFrame):
         selection_hlayout.setStretch(1, 1)
         selection_hlayout.setStretch(2, 1)
 
-        string_replace_grp_box = QGroupBox('String Replace')
-        string_replace_grp_box_layout = QVBoxLayout()
+        string_replace_grp_box = QtWidgets.QGroupBox('String Replace')
+        string_replace_grp_box_layout = QtWidgets.QVBoxLayout()
 
-        pattern_label = QLabel("Pattern string:")
-        pattern_hlayout = QHBoxLayout()
-        self.ui_pattern_str = QLineEdit('')
+        pattern_label = QtWidgets.QLabel("Pattern string:")
+        pattern_hlayout = QtWidgets.QHBoxLayout()
+        self.ui_pattern_str = QtWidgets.QLineEdit('')
         pattern_path_browse = hou.qt.FileChooserButton()
         pattern_path_browse.setFileChooserFilter(hou.fileType.Directory)
         pattern_path_browse.setFileChooserTitle('Choose source directory')
@@ -374,9 +362,9 @@ class FilePathManagerBrowser(QFrame):
         pattern_hlayout.addWidget(self.ui_pattern_str)
         pattern_hlayout.addWidget(pattern_path_browse)
 
-        replacement_label = QLabel('Replacement string:')
-        replacement_hlayout = QHBoxLayout()
-        self.ui_replacement_str = QLineEdit('$HIP/tex/')
+        replacement_label = QtWidgets.QLabel('Replacement string:')
+        replacement_hlayout = QtWidgets.QHBoxLayout()
+        self.ui_replacement_str = QtWidgets.QLineEdit('$HIP/tex/')
         replacement_path_browse = hou.qt.FileChooserButton()
         replacement_path_browse.setFileChooserFilter(hou.fileType.Directory)
         replacement_path_browse.setFileChooserTitle(
@@ -386,8 +374,8 @@ class FilePathManagerBrowser(QFrame):
         replacement_hlayout.addWidget(self.ui_replacement_str)
         replacement_hlayout.addWidget(replacement_path_browse)
 
-        syntax_layout = QHBoxLayout()
-        syntax_label = QLabel('Function to use :')
+        syntax_layout = QtWidgets.QHBoxLayout()
+        syntax_label = QtWidgets.QLabel('Function to use :')
         self.ui_syntax_combo_box = hou.qt.ComboBox()
         for func_tuple in const.STR_REPLACE_FUNCS:
             self.ui_syntax_combo_box.addItem(func_tuple[0])
@@ -415,8 +403,8 @@ class FilePathManagerBrowser(QFrame):
         string_replace_grp_box_layout.addLayout(syntax_layout)
         string_replace_grp_box.setLayout(string_replace_grp_box_layout)
 
-        file_action_hlayout = QHBoxLayout()
-        file_action_label = QLabel('File action :')
+        file_action_hlayout = QtWidgets.QHBoxLayout()
+        file_action_label = QtWidgets.QLabel('File action :')
 
         self.ui_batch_process_action_combo = hou.qt.ComboBox()
         for file_action in const.FILE_ACTIONS:
@@ -425,12 +413,12 @@ class FilePathManagerBrowser(QFrame):
         file_action_hlayout.addWidget(self.ui_batch_process_action_combo)
         file_action_hlayout.setStretch(1, 1)
 
-        buttons_hlayout = QHBoxLayout()
-        preview_it = QPushButton('Dryrun')
+        buttons_hlayout = QtWidgets.QHBoxLayout()
+        preview_it = QtWidgets.QPushButton('Dryrun')
 
         preview_it.setFixedHeight(40)
         preview_it.clicked.connect(self.on_action_dryrun)
-        run_it = QPushButton('Run')
+        run_it = QtWidgets.QPushButton('Run')
         run_it.setFixedHeight(40)
         run_it.clicked.connect(self.on_action_run)
         buttons_hlayout.addWidget(preview_it)
@@ -438,7 +426,7 @@ class FilePathManagerBrowser(QFrame):
         buttons_hlayout.setStretch(0, 3)
         buttons_hlayout.setStretch(1, 7)
 
-        note_label = QLabel(
+        note_label = QtWidgets.QLabel(
             'NOTE: \n'
             ' 1. The repath string replace will be applied to the RAW value '
             'of the Parameter, not the expanded value.\n'
@@ -472,7 +460,7 @@ class FilePathManagerBrowser(QFrame):
         tools_scroll_area.setWidget(tools_widget)
 
         # create log widget
-        log_scroll_area = QScrollArea()
+        log_scroll_area = QtWidgets.QScrollArea()
 
         # add widgets to tab widget
         tools_n_log_top_widget.addTab(tools_scroll_area, "Tools")
@@ -490,8 +478,8 @@ class FilePathManagerBrowser(QFrame):
         tools_n_log_top_widget = self.build_tools_n_log_widget()
 
         # ==== centre section layout ====
-        centre_section_layout = QHBoxLayout()
-        splitter = QSplitter()
+        centre_section_layout = QtWidgets.QHBoxLayout()
+        splitter = QtWidgets.QSplitter()
         splitter.addWidget(node_view_top_widget)
         splitter.addWidget(parm_view_top_widget)
         splitter.addWidget(tools_n_log_top_widget)
@@ -556,7 +544,7 @@ class FilePathManagerBrowser(QFrame):
         self.ui_root_path_text.setText(op_node.path())
         self.on_refresh()
 
-    def on_node_tree_view_double_clicked(self, model_index: QModelIndex):
+    def on_node_tree_view_double_clicked(self, model_index: QtCore.QModelIndex):
 
         node = self._node_tree_model.get_hou_object(model_index)
         if not node:
@@ -599,10 +587,10 @@ class FilePathManagerBrowser(QFrame):
             return
 
         index = self._parm_tree_model.index(row_id, 2)
-        self._parm_tree_model.setData(index, path, Qt.EditRole)
+        self._parm_tree_model.setData(index, path, QtCore.Qt.EditRole)
 
-    def on_parm_tree_data_changed(self, top_left: QModelIndex,
-                                  bottom_right: QModelIndex, roles):
+    def on_parm_tree_data_changed(self, top_left: QtCore.QModelIndex,
+                                  bottom_right: QtCore.QModelIndex, roles):
         parm = (self._parm_tree_model.get_item(top_left)
                 .get_raw_data().get_orig_data())
 
@@ -611,19 +599,19 @@ class FilePathManagerBrowser(QFrame):
         if not results:
             return
 
-        dialog = QDialog(self)
-        layout = QVBoxLayout()
+        dialog = QtWidgets.QDialog(self)
+        layout = QtWidgets.QVBoxLayout()
 
-        table = QTableWidget()
+        table = QtWidgets.QTableWidget()
         table.setColumnCount(2)
         table.setRowCount(len(results))
         table.setHorizontalHeaderLabels(['Original Raw Path', 'New Raw Path'])
         header = table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         for index, pair in enumerate(results):
-            table.setItem(index, 0, QTableWidgetItem(pair[0]))
-            table.setItem(index, 1, QTableWidgetItem(pair[1]))
+            table.setItem(index, 0, QtWidgets.QTableWidgetItem(pair[0]))
+            table.setItem(index, 1, QtWidgets.QTableWidgetItem(pair[1]))
 
         layout.addWidget(table)
         dialog.setLayout(layout)
@@ -724,7 +712,7 @@ class FilePathManagerBrowser(QFrame):
                 if not dryrun:
                     # Then set model data, the views will update automatically.
                     self._parm_tree_model.setData(id_pair[1], new_raw_path,
-                                                  Qt.EditRole)
+                                                  QtCore.Qt.EditRole)
 
         return results
 

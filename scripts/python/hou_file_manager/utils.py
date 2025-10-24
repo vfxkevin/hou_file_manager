@@ -39,6 +39,8 @@ def process_parm_files(parm, file_action, new_raw_path, dryrun=True):
     new_raw_basename = os.path.basename(new_raw_path)
     new_expanded_dirname = os.path.dirname(new_expanded_path)
 
+    dryrun_str = "[DRYRUN] " if dryrun else ""
+
     if not original_raw_path:
         return False
 
@@ -121,20 +123,18 @@ def process_parm_files(parm, file_action, new_raw_path, dryrun=True):
 
         # Then take file action.
         if file_action == const.FILE_ACTION_COPY:
-            print('Copying source file:\n'
-                  '    {}\n'
-                  '  to destination file:\n'
-                  '    {}'
-                  .format(src_file, dest_file))
+            print(f'{dryrun_str}Copying source file:\n'
+                  f'{dryrun_str}    {src_file}\n'
+                  f'{dryrun_str}  to destination file:\n'
+                  f'{dryrun_str}    {dest_file}')
             if not dryrun:
                 os.makedirs(os.path.dirname(dest_file), exist_ok=True)
                 shutil.copy(src_file, dest_file)
         elif file_action == const.FILE_ACTION_MOVE:
-            print('Moving source file:\n'
-                  '    {}\n'
-                  '  to destination file:\n'
-                  '    {}'
-                  .format(src_file, dest_file))
+            print(f'{dryrun_str}Moving source file:\n'
+                  f'{dryrun_str}    {src_file}\n'
+                  f'{dryrun_str}  to destination file:\n'
+                  f'{dryrun_str}    {dest_file}')
             if not dryrun:
                 os.makedirs(os.path.dirname(dest_file), exist_ok=True)
                 shutil.move(src_file, dest_file)

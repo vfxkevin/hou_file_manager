@@ -20,10 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PySide2.QtCore import QAbstractItemModel
-from PySide2.QtCore import QModelIndex
 
-from PySide2.QtCore import Qt
+from .py_ui import QtWidgets, QtCore, QtGui
 
 import hou
 
@@ -110,18 +108,18 @@ class HouNodeTreeModel(BaseTreeModel):
 
         super().__init__(path_list, headers, root_item, parent)
 
-    def flags(self, index: QModelIndex) -> Qt.ItemFlags:
+    def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlags:
         if not index.isValid():
-            return Qt.NoItemFlags
+            return QtCore.Qt.NoItemFlags
 
-        flags = QAbstractItemModel.flags(self, index)
+        flags = QtCore.QAbstractItemModel.flags(self, index)
 
         # Get tree item
         item = self.get_item(index)
 
         bg_color = item.get_raw_data().get_bg_color()
         if not bg_color:
-            flags &= ~Qt.ItemIsSelectable
+            flags &= ~QtCore.Qt.ItemIsSelectable
 
         return flags
 
@@ -136,7 +134,7 @@ class HouNodeTreeModel(BaseTreeModel):
                                   self._property_get_attrs,
                                   self._property_set_attrs)
 
-    def get_hou_object(self, index: QModelIndex):
+    def get_hou_object(self, index: QtCore.QModelIndex):
         if not index.isValid():
             return None
 
@@ -194,14 +192,14 @@ class HouParmTreeModel(BaseTreeModel):
 
         super().__init__(node_list, headers, root_item, parent)
 
-    def flags(self, index: QModelIndex) -> Qt.ItemFlags:
+    def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlags:
         if not index.isValid():
-            return Qt.NoItemFlag
+            return QtCore.Qt.NoItemFlag
 
-        flags = QAbstractItemModel.flags(self, index)
+        flags = QtCore.QAbstractItemModel.flags(self, index)
         col = index.column()
         if col == const.PARM_TREE_VIEW_EDITABLE_COLUMN:
-            flags |= Qt.ItemIsEditable
+            flags |= QtCore.Qt.ItemIsEditable
         return flags
 
     def set_up_model_data(self, data: list):
@@ -219,7 +217,7 @@ class HouParmTreeModel(BaseTreeModel):
 
             # then add file parameters as children to the node
 
-    def get_hou_object(self,  index: QModelIndex):
+    def get_hou_object(self,  index: QtCore.QModelIndex):
         if not index.isValid():
             return None
 
