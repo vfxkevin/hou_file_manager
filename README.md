@@ -1,24 +1,15 @@
 # Houdini File Path Manager
-A GUI tool and central place for managing all Houdini file paths (textures, images, caches, geometries) of node parameters.
-![hou_file_manager_gui_01](https://github.com/user-attachments/assets/72080231-e58c-43fc-b32f-6c56a8f03f2f)
+A Houdini GUI utility that provides a centralized interface for managing external image, texture, cache and geometry file paths across node parameters.
 
-## What's New
-* v0.2.2
-  * Added icons to the radial menu.
-  * Added new radial menu itesm and re-organized layout of the menu.
-* v0.2.1
-  * The file paths can be changed by replacing partial strings using Python str.replace() or Python Regex re.sub() functions.
-  * Users can choose to only update parameters or also copy/move files to the new paths.
-  * Installation can be automated using Houdini's native Package tools.
-* v0.1.10
-  * UI for filtering nodes and filtering image/geometry parameters on them, so users can copy/move the files to new locations and update these parameters.
-  * Convenient UI for choosing image/geometry files for filtered parameters on filtered nodes.
-  * Tutorials
-    * Youtube: https://youtu.be/LoOPm2v3AoQ
-    * NOTE: Installation can be automated now! The Youtube video is only showing the manual method. So for the recommended installation method, please refer to the steps in this document below.
+<img width="1197" height="712" alt="hou_file_manager_main_ui" src="https://github.com/user-attachments/assets/0d4ec2e0-9601-420e-9ea4-c9f289686ad7" />
+
+## What's New - Sept 2026
+* Added Houdini 22 support.
+* Added Parameter View Select Tool.
+* Added help button for displaying help docs in Houdini help window.
 
 ## Functionalities:
-* Refresh button for refreshing the Node View when Houdini scene is changed.
+* Refresh button for refreshing the Node View after Houdini scene is changed.
   * Node View selection will be cleared once Refresh button is clicked.
   * Parameter View will be cleared as well.
 * Search in a path for nodes with file parmaters (image or geometry).
@@ -34,13 +25,14 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
         * `pri* ^*tmp` for any names start with `pri` but NOT end with `tmp`.
         * `*shader*` for any names with `shader` in it.
         * `* ^*shader*` for any names without `shader` in it.
-  * Node Type: Houdini single name patterns.
-  * Parameter Name: Houdini multi name patterns, like *, ^ and combinations.
-    * Refer to above Node Name multi name patterns.
-  * Parameter File Type: `Image` or `Geometry`.
+    * Node Type: Houdini single name patterns.
+      * Choosing a Node Category from the first dropdown automatically filters the Node Type dropdown to show only its registered types. Alternatively, you can manually type a name pattern to search for a specific node type.
+    * Parameter Name: Houdini multi name patterns, like *, ^ and combinations.
+      * Refer to above Node Name multi name patterns.
+    * Parameter File Type: `Image` or `Geometry`.
 * Node View
   * It only shows the nodes based on the search results.
-  * The nodes with file parametes that match the filters will be highlighted in red color.
+  * The nodes with file parameters that match the filters will be highlighted with blue background color.
   * Users can select nodes in the Node View, and so their parameters that match the filters will be shown in the Parameter View.
     * (NOTE: This won't affect Houdini current node selection in Network View, unless double click on a node in Node View.)
     * Left Mouse Button (LMB) click to select single node.
@@ -56,13 +48,16 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
     * A `File Choose` button to choose a file for it (the dialog has image preview on), and
     * A `Preview` button to preview the image in MPlay minimal mode.
   * The Raw Value of the file parameter in the Parameter View can be edited in place by double-clicking on it.
-* Tools UI
-  * Files in the Parameter View can be batch processed, and the Raw Value file paths of the parmaeters will be updated to the new paths. Currently supported actions are:
-    * `Copy` : To copy the files specified in the parameters to a destination directory, and then update the parameter file paths to the new paths. But if the files specified in the parameters don't exist or the copying action failed, nothing will be copied and parameters won't be updated either.
-    * `Move` : To move the files specified in the parameters to a destination directory, and then update the parameter file paths to the new paths. But if the files specified in the parameters don't exist or the moving action failed, nothing will be moved and parameters won't be updated either.
-    * `Repath` : To change the directory paths of the files specified in the parameters to a new desination directory. It just simply changes the file path values of the parameters, and won't check if the file paths are really pointing to real files or not.
-  * `<UDIM>` sequence file paths are supported.
-  * Time dependent sequence paths with `$F` or `${F}` are supported. The `$F` or `${F}` can have zero paddings, such as `$F4`, `$F6`, `${F4}` etc.
+* Tool Tabs
+  * Parm View Select Tool
+    * Allows you to quickly check or isolate specific parameters within your view based on explicit criteria. You can select items matching standard wildcards (fnmatch), Python regular expressions (re.fullmatch), or by checking the disk validity (whether the referenced files actually exist or are missing).
+  * External File Path Tool 
+    * Files in the Parameter View can be batch processed, and the Raw Value file paths of the parmaeters will be updated to the new paths. Currently supported actions are:
+      * `Copy` : To copy the files specified in the parameters to a destination directory, and then update the parameter file paths to the new paths. But if the files specified in the parameters don't exist or the copying action failed, nothing will be copied and parameters won't be updated either.
+      * `Move` : To move the files specified in the parameters to a destination directory, and then update the parameter file paths to the new paths. But if the files specified in the parameters don't exist or the moving action failed, nothing will be moved and parameters won't be updated either.
+      * `Repath` : To change the directory paths of the files specified in the parameters to a new desination directory. It just simply changes the file path values of the parameters, and won't check if the file paths are really pointing to real files or not.
+    * `<UDIM>` sequence file paths are supported.
+    * Time dependent sequence paths with `$F` or `${F}` are supported. The `$F` or `${F}` can have zero paddings, such as `$F4`, `$F6`, `${F4}` etc.
 
 
 ## Installation
@@ -104,12 +99,15 @@ A GUI tool and central place for managing all Houdini file paths (textures, imag
 
 ## Launch Hou File Manager Tool
 There are 3 methods to launch the GUI:
-* Load the `File Manager` shelf and use the first `File Manager` button to launch it.
-  * ![file_manager_shelf](https://github.com/user-attachments/assets/3d872471-af7b-479d-8a10-9386d30c448f)
 * Add a `New Pane Tab` of `Hou File Manager` to the main desktop.
   * ![hou_file_manager_pane_tab](https://github.com/user-attachments/assets/67130c8c-2be0-4c0d-91f1-efdc1c55eea4)
-* In Network Editor, press hotkey `m` to load out quick radial menu, and choose `File Manager`.
-  * ![network_editor_radial_menu](https://github.com/user-attachments/assets/9c3f813d-1e7f-4c24-a063-31749b3733d0)
+* Load the `File Manager` shelf and use the first `File Manager` button to launch it.
+  * ![file_manager_shelf](https://github.com/user-attachments/assets/3d872471-af7b-479d-8a10-9386d30c448f)
+* In Network Editor, press hotkey `g` to load out quick radial menu, go to `Look Dev` and choose `File Manager`.
+  * <img width="328" height="262" alt="lookdev" src="https://github.com/user-attachments/assets/722e99c1-1c23-4654-9f5b-bea4488bc17b" />
+  * <img width="440" height="232" alt="file_manager" src="https://github.com/user-attachments/assets/66369607-d0c3-4982-8732-2c78d11188cd" />
+
+
 
 ## Other Tools
 * These tools (on the shelf and raidial menu) are just shortcut scripts to create frequently used nodes:
@@ -126,8 +124,11 @@ There are 3 methods to launch the GUI:
   * File Cache
     * Create `File Cache` nodes and connect them to the outputs of the corresponding selected nodes.
   * Transform
-    * Create `Transnform` nodes and connect them to the outputs of the correspoding selected nodes. 
+    * Create `Transnform` nodes and connect them to the outputs of the correspoding selected nodes.
+* The hotkey for radial menu in the Network view is `g`.
+* The shelf to access these tools is `File Manager`.
 
 ## TODOs
-* Logging UI.
+* Batch processing for any string parameters for modifying strings based on user custom patterns. 
+* Batch processing for Operator/Node Reference parameters for modifying paths based on user custom patterns and copying/moving nodes. 
 * Preview geometry file(s).
