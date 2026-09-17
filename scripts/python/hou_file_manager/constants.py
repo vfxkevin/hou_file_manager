@@ -22,8 +22,11 @@
 
 import hou
 import re
+import fnmatch
 
 PATH_DELIMITER = '/'
+
+UDIM_TOKEN = '<UDIM>'
 
 # Headers
 DEFAULT_TREE_HEADERS = ['Name', 'Value']
@@ -60,9 +63,23 @@ REGEX_SUBSTITUTE = (PYTHON_RE_SUBSTITUTE,
                     )
 STR_REPLACE_FUNCS = [STR_REPLACE, REGEX_SUBSTITUTE]
 
+# Path match functions
+PYTHON_FNMATCH_MATCH = 'Python: fnmatch.fnmatch()'
+FNMATCH_MATCH = (PYTHON_FNMATCH_MATCH,
+                 lambda pattern, string:
+                 fnmatch.fnmatch(string, pattern)
+                 )
+PYTHON_RE_FULLMATCH = 'Python: re.fullmatch()'
+RE_FULLMATCH = (PYTHON_RE_FULLMATCH,
+                lambda pattern, string:
+                re.fullmatch(pattern, string)
+                )
+MATCH_FUNCS = [FNMATCH_MATCH, RE_FULLMATCH]
+
 # Colors
 BG_RED = (100, 0, 0)
 BG_GREEN = (0, 100, 0)
+BG_BLUE = (0, 0, 100)
 
 # icons
 ICON_SIZE = hou.ui.scaledSize(16)
@@ -70,4 +87,12 @@ ADD_ICON = hou.qt.createIcon("BUTTONS_list_add", ICON_SIZE, ICON_SIZE)
 
 SESSION_VAR = 'GLOBAL_BROWSER_UI_HOU_FILE_MANAGER'
 
+# package name
+PKG_NAME = 'hou_file_manager'
 
+# File Status check
+FILE_STATUS = ['Any File Status', 'Existing Files Only', 'Missing Files Only']
+
+# Regex
+REGEX_F_PADDING = r'\$(?:\{F([0-9]*)\}|F([0-9]*))'
+REGEX_FOUR_DIGITS = r'(\d{4})'

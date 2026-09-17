@@ -160,7 +160,7 @@ class HouNodeTreeModel(BaseTreeModel):
             hou_node = hou.node(current_path)
             # create a tree item
             if not the_rest:
-                bg_color = const.BG_RED
+                bg_color = const.BG_BLUE
             else:
                 bg_color = None
             child = TreeItem(

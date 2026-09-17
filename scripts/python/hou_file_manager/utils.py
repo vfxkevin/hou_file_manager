@@ -21,11 +21,64 @@
 # SOFTWARE.
 
 import os
+import sys
 import shutil
 import glob
 import re
+import importlib
 import hou
 from . import constants as const
+
+class MissingUDIMToken(Exception):
+    pass
+
+class FPaddingReSplitError(Exception):
+    pass
+
+class SpecialSymbolFound(Exception):
+    pass
+
+def files_exist(parm):
+    """Checks if the files specified in the parm exist. For sequence
+    files, it will return True if any files specified exist."""
+    raw_path = parm.rawValue()
+
+    # Backtick or () are not supported.
+    if ('`' in raw_path or '(' in raw_path or ')' in raw_path):
+        raise SpecialSymbolFound(f'Sepcial symbols, such as `, (, or ), '
+                                 f'found in: {raw_path}')
+
+    expanded_dirname = os.path.dirname(parm.eval())
+
+    # Return false when the dirname doesn't exist.
+    if not os.path.exists(expanded_dirname):
+        return False
+
+    raw_basename = os.path.basename(raw_path)
+
+    pattern = None
+    if const.UDIM_TOKEN in raw_basename:
+        pattern = re.escape(raw_basename)
+        if const.UDIM_TOKEN not in pattern:
+            raise MissingUDIMToken(f'<UDIM> token gone missing in: {pattern}')
+        pattern = pattern.replace(const.UDIM_TOKEN, const.REGEX_FOUR_DIGITS)
+    elif parm.isTimeDependent():
+        parts = re.split(const.REGEX_F_PADDING, raw_basename)
+        if len(parts) != 4:
+            raise FPaddingReSplitError(f'Can not use F padding to split the '
+                                       f'basename: {raw_basename}')
+        digits = parts[1] or parts[2]
+        pattern = re.escape(parts[0]) + r'(\d{' + digits + r'})' + re.escape(parts[3])
+    else:
+        pattern = re.escape(raw_basename)
+
+    compiled = re.compile(pattern)
+    for filename in os.listdir(expanded_dirname):
+        match = compiled.fullmatch(filename)
+        if match:
+            return True
+
+    return False
 
 
 def process_parm_files(parm, file_action, new_raw_path, dryrun=True):
@@ -49,8 +102,8 @@ def process_parm_files(parm, file_action, new_raw_path, dryrun=True):
 
     # Houdini doesn't support time-dependent UDIM texture files.
     # We will check if the file path contains <UDIM> first.
-    if '<UDIM>' in original_raw_path:
-        pattern_re = re.compile('<UDIM>')
+    if const.UDIM_TOKEN in original_raw_path:
+        pattern_re = re.compile(const.UDIM_TOKEN)
         is_sequence_style = True
     elif parm.isTimeDependent():
         # Backtick or () are not supported.
@@ -61,7 +114,7 @@ def process_parm_files(parm, file_action, new_raw_path, dryrun=True):
             return False
 
         # Checking for $F4 or ${F4} like substrings.
-        pattern_re = re.compile('\$\{*F[0-9]*\}*')
+        pattern_re = re.compile(const.REGEX_F_PADDING)
         result = pattern_re.search(original_raw_basename)
         if not result:
             print('Ignored, because even it is time dependent but not $F '
@@ -147,4 +200,19 @@ def process_parm_files(parm, file_action, new_raw_path, dryrun=True):
     print('All files have been processed. Done.')
     return True
 
+
+def deep_reload_package(package_name):
+    modules_to_reload = [
+        name for name in sys.modules
+        if name == package_name or name.startswith(package_name + ".")
+    ]
+    modules_to_reload.sort(key=len, reverse=True)
+
+    for module_name in modules_to_reload:
+        try:
+            importlib.reload(sys.modules[module_name])
+        except Exception as e:
+            print(f"Skipped reloading {module_name}: {e}")
+
+    print(f"Successfully deep-reloaded all submodules for: {package_name}")
 

@@ -1,0 +1,120 @@
+= Houdini File & Path Manager =
+
+#name: value
+
+"""The Houdini File & Path Manager Tool is a comprehensive utility designed to streamline scene management by locating,
+filtering, and batch-processing file path parameters (such as textures, geometry, and caches) across your Houdini session."""
+
+[Image:/pypanel/images/main_ui.png]
+
+== Key Features ==
+
+* *Advanced Filtering*: Automatically isolate all nodes containing file path parameters.
+* *Smart Selection*: Target specific parameters using standard wildcards (fnmatch), regular expressions (re.fullmatch), or file existence checks.
+* *Batch Operations*: Update, move, or copy multiple external assets simultaneously.
+* *Interactive Navigation*: Jump directly to nodes or edit parameter values directly from the tool's interface.
+
+== Getting Started ==
+
+# Filtering Node Paths
+
+    Upon setting up the filters in the UI and clicking the *Refresh* button, the tool automatically scans your hip file.
+    You can instantly filter out all nodes that contain file path parameters (e.g., File SOPs, Texture VOPs, Alembic nodes)
+    to get a clean overview of your scene dependencies.
+
+# Targeting Parameters
+
+    Narrow down your selection using specific criteria in the *Select* tool panel:
+
+    * *Pattern Matching*: Use standard wildcards (fnmatch) or powerful regular expressions (re.fullmatch) to match specific
+    naming conventions or file extensions.
+    * *Validation Check*: Filter parameters based on whether the referenced file currently exists on disk.
+
+# Batch Processing
+
+    Once you have selected your target parameters, you can execute bulk actions:
+    * *Path Modification*: Remap or swap directory structures for multiple paths at once.
+    * *File Management*: Copy or move the underlying disk files to new project locations while automatically updating the
+    string parameters in Houdini.
+
+# Quick UI Shortcuts
+
+    * *Jump to Node*: Double-click any node in the *Node View* to automatically focus and navigate to that node inside the
+    Houdini Network Editor.
+    * *Inline Editing*: Double-click the *Raw Value* of any parameter in the *Parameter View* to modify its string value
+    immediately without leaving the tool.
+    * *File Browsing*: Click the *Browse* button next to a parameter to open a file dialogue, allowing you to quickly locate
+    and assign a new file path.
+    * *Asset Preview*: Click the *Preview* button next to a parameter to view the file attached to the parameter.
+    (Note: Currently, only image file previews are supported).
+
+== UI Reference ==
+
+=== Global Controls ===
+
+    * *Refresh Button*: Click this to update the Node View based on the latest scene content and your current filter settings.
+    * *Help Button*: Displays this help documentation.
+    * *Search in Path*: Defines the root Houdini scene network path (e.g., /obj, /stage, /mat, /obj/geo1/subnet) where
+    the tool will search for nodes and parameters. You can manually type a path or use the adjacent browse button to
+    visually select one from your network.
+
+=== Filters ===
+
+    Narrow down your search criteria using four independent filter types: Node Name, Node Type, Parameter Name, and
+    Parameter Type. Once these filters are configured and you click the Refresh button, the tool updates the interface
+    to show only the nodes and parameters that simultaneously meet all specified criteria.
+
+=== Node View ===
+
+   Displays a hierarchical tree of all nodes matching your filters, preserving the scene's layout so you always
+   know exactly where a node lives.
+   * *Visual States*: Selectable items are highlighted with a blue background, while actively selected items are
+   highlighted with a yellow background.
+   * Selecting a item or multiple items here dynamically populates the Parameter View with all of their matching
+   parameters combined.
+   * Selecting items inside this panel will not alter your active selection in Houdini's native Network Editor.
+   If you want to select a node in Houdini and move to it, double-click on any item in this list.
+
+   How to select item(s) in Node View:
+    * Single-click on an item to select a single item.
+    * Click and drag across multiple items to select multiple items.
+    * Use Ctrl + click to toggle the selection status of individual items.
+    * Use Shift + click on a start and end item to select an entire range of items.
+
+=== Parameter View ===
+
+    Displays the filtered parameters belonging to whatever nodes are currently highlighted in the Node View.
+    Each parameter entry includes:
+
+    * *Browse Button*: Opens a file dialogue to quickly locate and assign a new path.
+    * *Preview Button* (Labelled "P"): Displays a quick preview of the referenced file. This will launch MPlay in
+    minimal mode. Resizing the MPlay viewport will reveal the standard window controls, such as the window close button.
+    (Note: Currently, only image files are supported).
+    * *Raw Value Field*: Double-clicking this area allows you to directly edit the path string or expression.
+
+    Note: You can select single or multiple parameters here to pass them into the batch processing tools.
+
+    How to select item(s) in Parameter View:
+    * Single-click on an item to select a single item.
+    * Click and drag across multiple items to select multiple items.
+    * Use Ctrl + click to toggle the selection status of individual items.
+    * Use Shift + click on a start and end item to select an entire range of items.
+
+=== Select Tool ===
+
+    Allows you to quickly check or isolate specific parameters within your view based on explicit criteria. You can
+    select items matching standard wildcards (fnmatch), Python regular expressions (re.fullmatch), or by
+    checking the disk validity (whether the referenced files actually exist or are missing).
+
+=== Repath Tool ===
+
+    Provides bulk operations for either your currently highlighted parameters or all items populated in the Parameter View:
+
+    * *String Replacement*: Perform bulk path updates using Python's standard str.replace() or regular expression re.sub()
+    functions, utilizing the specific search and replacement patterns provided by the user.
+    * *File Operations*: Triggered during bulk path updates. If enabled, this option ensures that not only are the
+    string parameters inside Houdini updated with the new paths, but the corresponding physical files on disk are also
+    copied or moved from their original locations to the new destination paths.
+    * *Sequence Support*: Fully supports operations on file sequences containing $F padding variables or <UDIM> tokens.
+    * *Dry Run Button*: Allows you to simulate the operation and preview the path changes before clicking Run to commit
+    the actual changes to your scene and disk.

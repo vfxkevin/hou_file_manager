@@ -24,7 +24,7 @@ import os
 import subprocess
 from functools import partial
 
-from .py_ui import QtWidgets, QtCore
+from .py_ui import QtWidgets, QtCore, QtGui
 
 import hou
 import nodesearch
@@ -86,6 +86,9 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
 
         # set the root layout
         self.setLayout(root_layout)
+
+    def sizeHint(self):
+        return QtCore.QSize(2000, 800)
 
     def set_up_node_tree_model(self, path_list):
 
@@ -153,8 +156,18 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
     def build_top_section(self):
 
         # create widgets
+        top_buttons_layout = QtWidgets.QHBoxLayout()
         self.ui_refresh_button = QtWidgets.QPushButton('Refresh')
+        self.ui_refresh_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                             QtWidgets.QSizePolicy.Expanding)
         self.ui_refresh_button.clicked.connect(self.on_refresh)
+        help_button = QtWidgets.QPushButton('Help')
+        help_button.clicked.connect(self.on_help)
+        help_button.setFixedWidth(50)
+
+        top_buttons_layout.addWidget(self.ui_refresh_button)
+        top_buttons_layout.addSpacing(10)
+        top_buttons_layout.addWidget(help_button)
 
         # choose root node section
         root_path_layout = QtWidgets.QHBoxLayout()
@@ -252,7 +265,7 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
 
         # top section layout
         top_section_layout = QtWidgets.QVBoxLayout()
-        top_section_layout.addWidget(self.ui_refresh_button)
+        top_section_layout.addLayout(top_buttons_layout)
         top_section_layout.addLayout(root_path_layout)
         top_section_layout.addWidget(filter_grp_box)
 
@@ -268,18 +281,6 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
         self.ui_node_tree_view.setAlternatingRowColors(True)
         self.ui_node_tree_view.setSelectionMode(
             QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.ui_node_tree_view.setToolTip(
-            'Node View:\n'
-            '* Select nodes to show parameters details:\n'
-            '   - This will NOT affect node selection in Houdini!\n'
-            '   - Only highlighted nodes can be selected!\n'
-            '   - Single-click the highlighted item to select single item.\n'
-            '   - Click and drag to select multiple items.\n'
-            '   - Use Ctrl + click to toggle selection of the items.\n'
-            '   - Use Shift + click the start and end items for a range.\n'
-            '* Double-click on an item to select it, set it to current \n'
-            '  and show it in the Network View.\n'
-            '   - This WILL affect node selection in Houdini!')
         self.ui_node_tree_view.doubleClicked.connect(
             self.on_node_tree_view_double_clicked)
 
@@ -299,17 +300,6 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
         self.ui_parm_tree_view.setAlternatingRowColors(True)
         self.ui_parm_tree_view.setSelectionMode(
             QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.ui_parm_tree_view.setToolTip(
-            'Parameter View:\n'
-            '* To select parameter(s) for "Batch Processing" (right panel):\n'
-            '   - Single-click the highlighted item to select single item.\n'
-            '   - Click and drag to select multiple items.\n'
-            '   - Use Ctrl + click to toggle selection of the items.\n'
-            '   - Use Shift + click the start and end items for a range.\n'
-            '* Use the file chooser buttons in the "Tools" column \n'
-            '  to browse and choose files.\n'
-            '* Double-click on an item of the "Raw Value" column to \n'
-            '  edit them directly in place.')
 
         # Add to layout
         parm_view_layout.addWidget(self.ui_parm_tree_view)
@@ -321,13 +311,55 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
         # create tab widget
         tools_n_log_top_widget = QtWidgets.QTabWidget()
 
-        # create the scroll area
-        tools_scroll_area = QtWidgets.QScrollArea()
-        tools_scroll_area.setWidgetResizable(True)
+        # ---------------------------------
+        # Create the select tool scroll area
+        tool_select_scroll_area = QtWidgets.QScrollArea()
+        tool_select_scroll_area.setWidgetResizable(True)
 
         # Create widget and layout
-        tools_widget = QtWidgets.QWidget()
-        tools_layout = QtWidgets.QVBoxLayout()
+        tool_select_widget = QtWidgets.QWidget()
+        tool_select_layout = QtWidgets.QVBoxLayout()
+
+        select_parm_btn = QtWidgets.QPushButton('Select Parameter View Item(s)')
+        select_parm_btn.setFixedHeight(40)
+        select_parm_btn.clicked.connect(self.on_select_parm_view_items)
+
+        self.ui_missing_paths_toggle = QtWidgets.QCheckBox('Missing Paths')
+        self.ui_missing_paths_toggle.setChecked(False)
+
+        select_pattern_label = QtWidgets.QLabel('Path Pattern:')
+        self.ui_select_pattern = QtWidgets.QLineEdit()
+
+        match_func_label = QtWidgets.QLabel('Match Function to use:')
+        self.ui_match_func_combo = hou.qt.ComboBox()
+        for func_tuple in const.MATCH_FUNCS:
+            self.ui_match_func_combo.addItem(func_tuple[0])
+
+        file_status = QtWidgets.QLabel('File Status:')
+        self.ui_file_status_combo = hou.qt.ComboBox()
+        for i in const.FILE_STATUS:
+            self.ui_file_status_combo.addItem(i)
+
+        tool_select_layout.addWidget(select_pattern_label)
+        tool_select_layout.addWidget(self.ui_select_pattern)
+        tool_select_layout.addWidget(match_func_label)
+        tool_select_layout.addWidget(self.ui_match_func_combo)
+        tool_select_layout.addWidget(file_status)
+        tool_select_layout.addWidget(self.ui_file_status_combo)
+        tool_select_layout.addStretch()
+        tool_select_layout.addWidget(select_parm_btn)
+
+        tool_select_widget.setLayout(tool_select_layout)
+        tool_select_scroll_area.setWidget(tool_select_widget)
+
+        # ---------------------------------
+        # create the repath tool scroll area
+        tool_repath_scroll_area = QtWidgets.QScrollArea()
+        tool_repath_scroll_area.setWidgetResizable(True)
+
+        # Create widget and layout
+        tool_repath_widget = QtWidgets.QWidget()
+        tool_repath_layout = QtWidgets.QVBoxLayout()
 
         # create a GroupBox for batch process files
         self.ui_batch_process_grp_box = QtWidgets.QGroupBox('Batch Processing')
@@ -451,20 +483,17 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
         )
 
         # Add the GroupBox to the layout
-        tools_layout.addWidget(self.ui_batch_process_grp_box)
+        tool_repath_layout.addWidget(self.ui_batch_process_grp_box)
 
         # Set the layout and widget
-        tools_widget.setLayout(tools_layout)
+        tool_repath_widget.setLayout(tool_repath_layout)
 
         # add to scroll area
-        tools_scroll_area.setWidget(tools_widget)
-
-        # create log widget
-        log_scroll_area = QtWidgets.QScrollArea()
+        tool_repath_scroll_area.setWidget(tool_repath_widget)
 
         # add widgets to tab widget
-        tools_n_log_top_widget.addTab(tools_scroll_area, "Tools")
-        tools_n_log_top_widget.addTab(log_scroll_area, 'Logs')
+        tools_n_log_top_widget.addTab(tool_select_scroll_area, 'Parm View Select Tool')
+        tools_n_log_top_widget.addTab(tool_repath_scroll_area, 'External File Path Tool')
 
         return tools_n_log_top_widget
 
@@ -591,8 +620,9 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
 
     def on_parm_tree_data_changed(self, top_left: QtCore.QModelIndex,
                                   bottom_right: QtCore.QModelIndex, roles):
-        parm = (self._parm_tree_model.get_item(top_left)
-                .get_raw_data().get_orig_data())
+        pass
+        # parm = (self._parm_tree_model.get_item(top_left)
+        #         .get_raw_data().get_orig_data())
 
     def on_action_dryrun(self):
         results = self.run_it(dryrun=True)
@@ -753,4 +783,59 @@ class FilePathManagerBrowser(QtWidgets.QFrame):
 
     def on_replacement_path_browse(self, dir_path):
         self.ui_replacement_str.setText(dir_path)
+
+    def on_select_parm_view_items(self):
+        model = self.ui_parm_tree_view.model()
+        selection_model = self.ui_parm_tree_view.selectionModel()
+
+        selection_model.clearSelection()
+        root_index = self.ui_parm_tree_view.rootIndex()
+
+        pattern = self.ui_select_pattern.text()
+        if not pattern:
+            hou.ui.displayMessage('The match pattern is empty.')
+            return
+
+        # match function
+        match_combo_index = self.ui_match_func_combo.currentIndex()
+        if match_combo_index >= len(const.MATCH_FUNCS):
+            hou.ui.displayMessage('The path match function is not supported!\n'
+                                  'Supported are : {}'
+                                  .format(const.MATCH_FUNCS))
+            return
+        match_func = const.MATCH_FUNCS[match_combo_index][1]
+
+        for row in range(model.rowCount(root_index)):
+            index = model.index(row, 2)
+            raw_path = index.data()
+            parm = self._parm_tree_model.get_item(index).get_raw_data().get_orig_data()
+
+            # check if matching the user pattern
+            if not match_func(pattern, raw_path):
+                continue
+
+            # check if need to check file status
+            file_status_user = self.ui_file_status_combo.currentText()
+            if file_status_user != const.FILE_STATUS[0]:
+                try:
+                    file_existence = utils.files_exist(parm)
+                except (utils.MissingUDIMToken, utils.SpecialSymbolFound,
+                        utils.FPaddingReSplitError) as e:
+                    hou.ui.displayMessage(f'Error: {e}')
+
+                if file_status_user == const.FILE_STATUS[1] and not file_existence:
+                    continue
+                if file_status_user == const.FILE_STATUS[2] and file_existence:
+                    continue
+
+            row_index = model.index(row, 0)
+            selection_model.select(
+                row_index,
+                QtCore.QItemSelectionModel.SelectionFlag.Select |
+                QtCore.QItemSelectionModel.SelectionFlag.Rows
+            )
+
+    def on_help(self):
+        desktop = hou.ui.curDesktop()
+        desktop.displayHelpPyPanel(const.PKG_NAME)
 

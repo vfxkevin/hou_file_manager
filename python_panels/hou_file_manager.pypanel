@@ -16,6 +16,17 @@ def onCreateInterface():
     global THE_BROWSER
     THE_BROWSER = browser.FilePathManagerBrowser()
     setattr(hou.session, const.SESSION_VAR, THE_BROWSER)
+
+    # Get pane tab
+    pane_tab = kwargs.get('paneTab')
+
+    if pane_tab:
+        # Check if the pane tab is in a floating window state
+        floating_frame = pane_tab.floatingPanel()
+        if floating_frame:
+            # Force the floating window block to default scale
+            floating_frame.setSize((1200, 800))
+
     return THE_BROWSER
 
 def onDestroyInterface():
